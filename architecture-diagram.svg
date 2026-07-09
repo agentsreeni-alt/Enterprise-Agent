@@ -1,0 +1,168 @@
+<svg viewBox="0 0 1500 980" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+  <rect x="0" y="0" width="1500" height="980" fill="#f7f8fa"/>
+
+  <text x="750" y="36" text-anchor="middle" font-size="24" font-weight="bold" fill="#1a2332">Requirements-to-Reviewable-PR Agent Pipeline</text>
+  <text x="750" y="58" text-anchor="middle" font-size="13" fill="#5b6472">Orchestrator + specialized subagents, human approval gates, security foundation. Stops at "PR merged to master" — never auto-deploys.</text>
+
+  <!-- Orchestrator -->
+  <rect x="620" y="80" width="260" height="56" rx="10" fill="#1a2332"/>
+  <text x="750" y="105" text-anchor="middle" font-size="15" font-weight="bold" fill="#ffffff">ORCHESTRATOR AGENT</text>
+  <text x="750" y="123" text-anchor="middle" font-size="11" fill="#c7ccd6">Routes tasks, holds no credentials itself</text>
+
+  <!-- Orchestrator to stages -->
+  <line x1="750" y1="136" x2="750" y2="160" stroke="#1a2332" stroke-width="2"/>
+
+  <!-- Stage boxes -->
+  <!-- Row y=195-275, 8 boxes -->
+  <!-- box width 168, gap 14, start x=32 -->
+
+  <!-- connecting spine -->
+  <line x1="60" y1="160" x2="1440" y2="160" stroke="#1a2332" stroke-width="2"/>
+
+  <!-- Stage 1: Intake -->
+  <line x1="116" y1="160" x2="116" y2="195" stroke="#1a2332" stroke-width="2"/>
+  <rect x="32" y="195" width="168" height="86" rx="8" fill="#2f6fed"/>
+  <text x="116" y="220" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">1. Intake Agent</text>
+  <text x="116" y="238" text-anchor="middle" font-size="10" fill="#dbe6ff">Otter transcripts,</text>
+  <text x="116" y="251" text-anchor="middle" font-size="10" fill="#dbe6ff">meeting notes,</text>
+  <text x="116" y="264" text-anchor="middle" font-size="10" fill="#dbe6ff">summary + Qs</text>
+
+  <!-- gate 1 -->
+  <polygon points="116,148 132,160 116,172 100,160" fill="#e8b400"/>
+  <text x="116" y="145" text-anchor="middle" font-size="8" fill="#6b5300">GATE</text>
+
+  <!-- Stage 2: BRD -->
+  <line x1="298" y1="160" x2="298" y2="195" stroke="#1a2332" stroke-width="2"/>
+  <rect x="214" y="195" width="168" height="86" rx="8" fill="#2f6fed"/>
+  <text x="298" y="220" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">2. BRD Agent</text>
+  <text x="298" y="238" text-anchor="middle" font-size="10" fill="#dbe6ff">Configurable</text>
+  <text x="298" y="251" text-anchor="middle" font-size="10" fill="#dbe6ff">template, tech</text>
+  <text x="298" y="264" text-anchor="middle" font-size="10" fill="#dbe6ff">detail, follow-ups</text>
+  <polygon points="298,148 314,160 298,172 282,160" fill="#e8b400"/>
+  <text x="298" y="145" text-anchor="middle" font-size="8" fill="#6b5300">GATE</text>
+
+  <!-- Stage 3: Jira -->
+  <line x1="480" y1="160" x2="480" y2="195" stroke="#1a2332" stroke-width="2"/>
+  <rect x="396" y="195" width="168" height="86" rx="8" fill="#2f6fed"/>
+  <text x="480" y="220" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">3. Jira Agent</text>
+  <text x="480" y="238" text-anchor="middle" font-size="10" fill="#dbe6ff">Epics for large,</text>
+  <text x="480" y="251" text-anchor="middle" font-size="10" fill="#dbe6ff">stories for small,</text>
+  <text x="480" y="264" text-anchor="middle" font-size="10" fill="#dbe6ff">linked to BRD</text>
+
+  <!-- Stage 4: TDD -->
+  <line x1="662" y1="160" x2="662" y2="195" stroke="#1a2332" stroke-width="2"/>
+  <rect x="578" y="195" width="168" height="86" rx="8" fill="#2f6fed"/>
+  <text x="662" y="220" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">4. TDD Agent</text>
+  <text x="662" y="238" text-anchor="middle" font-size="10" fill="#dbe6ff">Stack-aware design</text>
+  <text x="662" y="251" text-anchor="middle" font-size="10" fill="#dbe6ff">(Salesforce/Node/</text>
+  <text x="662" y="264" text-anchor="middle" font-size="10" fill="#dbe6ff">Java/mobile), draft</text>
+  <polygon points="662,148 678,160 662,172 646,160" fill="#e8b400"/>
+  <text x="662" y="145" text-anchor="middle" font-size="8" fill="#6b5300">GATE</text>
+
+  <!-- Stage 5: Dev -->
+  <line x1="844" y1="160" x2="844" y2="195" stroke="#1a2332" stroke-width="2"/>
+  <rect x="760" y="195" width="168" height="86" rx="8" fill="#d9822b"/>
+  <text x="844" y="220" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">5. Dev Agent</text>
+  <text x="844" y="238" text-anchor="middle" font-size="10" fill="#fdeadb">Implements in</text>
+  <text x="844" y="251" text-anchor="middle" font-size="10" fill="#fdeadb">sandbox, opens</text>
+  <text x="844" y="264" text-anchor="middle" font-size="10" fill="#fdeadb">PR only (no direct</text>
+  <text x="844" y="275" text-anchor="middle" font-size="10" fill="#fdeadb">commit to branch)</text>
+
+  <!-- Stage 6: Review -->
+  <line x1="1026" y1="160" x2="1026" y2="195" stroke="#1a2332" stroke-width="2"/>
+  <rect x="942" y="195" width="168" height="86" rx="8" fill="#d9822b"/>
+  <text x="1026" y="220" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">6. Review Agent</text>
+  <text x="1026" y="238" text-anchor="middle" font-size="10" fill="#fdeadb">Diff check vs TDD</text>
+  <text x="1026" y="251" text-anchor="middle" font-size="10" fill="#fdeadb">+ standards, flags</text>
+  <text x="1026" y="264" text-anchor="middle" font-size="10" fill="#fdeadb">issues, requests</text>
+  <text x="1026" y="275" text-anchor="middle" font-size="10" fill="#fdeadb">changes</text>
+  <polygon points="1026,148 1042,160 1026,172 1010,160" fill="#e8b400"/>
+  <text x="1026" y="145" text-anchor="middle" font-size="8" fill="#6b5300">GATE</text>
+
+  <!-- Stage 7: Merge -->
+  <line x1="1208" y1="160" x2="1208" y2="195" stroke="#1a2332" stroke-width="2"/>
+  <rect x="1124" y="195" width="168" height="86" rx="8" fill="#1f8a4c"/>
+  <text x="1208" y="220" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">7. Merge Agent</text>
+  <text x="1208" y="238" text-anchor="middle" font-size="10" fill="#d9f3e3">Merges approved</text>
+  <text x="1208" y="251" text-anchor="middle" font-size="10" fill="#d9f3e3">PR to master.</text>
+  <text x="1208" y="264" text-anchor="middle" font-size="10" fill="#d9f3e3">PIPELINE ENDS</text>
+  <text x="1208" y="275" text-anchor="middle" font-size="10" fill="#d9f3e3">HERE.</text>
+  <polygon points="1208,148 1224,160 1208,172 1192,160" fill="#e8b400"/>
+  <text x="1208" y="145" text-anchor="middle" font-size="8" fill="#6b5300">GATE</text>
+
+  <!-- Stage 8: Docs -->
+  <line x1="1390" y1="160" x2="1390" y2="195" stroke="#1a2332" stroke-width="2"/>
+  <rect x="1306" y="195" width="168" height="86" rx="8" fill="#2f6fed"/>
+  <text x="1390" y="220" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">8. Docs Agent</text>
+  <text x="1390" y="238" text-anchor="middle" font-size="10" fill="#dbe6ff">Publishes BRD/TDD</text>
+  <text x="1390" y="251" text-anchor="middle" font-size="10" fill="#dbe6ff">/release notes to</text>
+  <text x="1390" y="264" text-anchor="middle" font-size="10" fill="#dbe6ff">Confluence</text>
+
+  <!-- Boundary wall after stage 7 -->
+  <line x1="1300" y1="180" x2="1300" y2="300" stroke="#b91c1c" stroke-width="3" stroke-dasharray="6,4"/>
+  <text x="1300" y="310" text-anchor="middle" font-size="11" font-weight="bold" fill="#b91c1c">AGENT / HUMAN BOUNDARY</text>
+
+  <!-- Out of scope box -->
+  <rect x="1124" y="330" width="248" height="70" rx="8" fill="none" stroke="#b91c1c" stroke-width="2" stroke-dasharray="5,3"/>
+  <text x="1248" y="353" text-anchor="middle" font-size="12" font-weight="bold" fill="#b91c1c">Production Deploy</text>
+  <text x="1248" y="370" text-anchor="middle" font-size="10" fill="#7a1616">Client's own CI/CD +</text>
+  <text x="1248" y="384" text-anchor="middle" font-size="10" fill="#7a1616">change mgmt. Agent never touches this.</text>
+  <line x1="1208" y1="281" x2="1208" y2="330" stroke="#b91c1c" stroke-width="2" stroke-dasharray="4,3"/>
+  <line x1="1208" y1="330" x2="1248" y2="330" stroke="#b91c1c" stroke-width="2" stroke-dasharray="4,3"/>
+
+  <!-- Security Foundation Band -->
+  <rect x="32" y="460" width="1442" height="230" rx="12" fill="#fff" stroke="#8b1e1e" stroke-width="2"/>
+  <text x="753" y="490" text-anchor="middle" font-size="16" font-weight="bold" fill="#8b1e1e">SECURITY &amp; GOVERNANCE FOUNDATION (applies to every stage above)</text>
+
+  <!-- vertical connectors from stages down to security band -->
+  <line x1="116" y1="281" x2="116" y2="460" stroke="#8b1e1e" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="480" y1="281" x2="480" y2="460" stroke="#8b1e1e" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="844" y1="281" x2="844" y2="460" stroke="#8b1e1e" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="1390" y1="281" x2="1390" y2="460" stroke="#8b1e1e" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- 6 security boxes, 2 rows x 3 cols -->
+  <!-- row 1 y=510-570 -->
+  <rect x="60" y="510" width="440" height="70" rx="8" fill="#fdecec"/>
+  <text x="280" y="533" text-anchor="middle" font-size="12" font-weight="bold" fill="#8b1e1e">Identity &amp; Least Privilege</text>
+  <text x="280" y="550" text-anchor="middle" font-size="9.5" fill="#5c1111">Per-connector scoped OAuth (Jira, GitHub, Confluence,</text>
+  <text x="280" y="563" text-anchor="middle" font-size="9.5" fill="#5c1111">Otter). No single agent holds a master credential.</text>
+
+  <rect x="530" y="510" width="440" height="70" rx="8" fill="#fdecec"/>
+  <text x="750" y="533" text-anchor="middle" font-size="12" font-weight="bold" fill="#8b1e1e">Secrets Vault</text>
+  <text x="750" y="550" text-anchor="middle" font-size="9.5" fill="#5c1111">Short-lived tokens via vault (Vault/AWS Secrets Manager).</text>
+  <text x="750" y="563" text-anchor="middle" font-size="9.5" fill="#5c1111">No plaintext credentials in prompts, logs, or memory.</text>
+
+  <rect x="1000" y="510" width="414" height="70" rx="8" fill="#fdecec"/>
+  <text x="1207" y="533" text-anchor="middle" font-size="12" font-weight="bold" fill="#8b1e1e">Guardrails: DLP + Prompt-Injection Defense</text>
+  <text x="1207" y="550" text-anchor="middle" font-size="9.5" fill="#5c1111">Transcripts/tickets/web content = untrusted data, never</text>
+  <text x="1207" y="563" text-anchor="middle" font-size="9.5" fill="#5c1111">instructions. Output filtering redacts sensitive data.</text>
+
+  <!-- row 2 y=600-660 -->
+  <rect x="60" y="600" width="440" height="70" rx="8" fill="#fdecec"/>
+  <text x="280" y="623" text-anchor="middle" font-size="12" font-weight="bold" fill="#8b1e1e">Sandboxed Execution</text>
+  <text x="280" y="640" text-anchor="middle" font-size="9.5" fill="#5c1111">Dev/review agents run in ephemeral, isolated environments.</text>
+  <text x="280" y="653" text-anchor="middle" font-size="9.5" fill="#5c1111">No network path to production systems.</text>
+
+  <rect x="530" y="600" width="440" height="70" rx="8" fill="#fdecec"/>
+  <text x="750" y="623" text-anchor="middle" font-size="12" font-weight="bold" fill="#8b1e1e">Immutable Audit Log</text>
+  <text x="750" y="640" text-anchor="middle" font-size="9.5" fill="#5c1111">Every tool call, decision, and output reconstructable.</text>
+  <text x="750" y="653" text-anchor="middle" font-size="9.5" fill="#5c1111">Required for compliance and incident response.</text>
+
+  <rect x="1000" y="600" width="414" height="70" rx="8" fill="#fdecec"/>
+  <text x="1207" y="623" text-anchor="middle" font-size="12" font-weight="bold" fill="#8b1e1e">Monitoring + Kill Switch</text>
+  <text x="1207" y="640" text-anchor="middle" font-size="9.5" fill="#5c1111">Anomaly detection on agent behavior; any human or</text>
+  <text x="1207" y="653" text-anchor="middle" font-size="9.5" fill="#5c1111">automated trigger can pause the pipeline instantly.</text>
+
+  <!-- Legend -->
+  <rect x="32" y="720" width="1442" height="60" rx="8" fill="#eef1f5"/>
+  <circle cx="60" cy="750" r="7" fill="#2f6fed"/>
+  <text x="75" y="754" font-size="11" fill="#1a2332">Info / doc generation stage</text>
+  <circle cx="330" cy="750" r="7" fill="#d9822b"/>
+  <text x="345" y="754" font-size="11" fill="#1a2332">Code-touching stage (highest risk, sandboxed)</text>
+  <circle cx="700" cy="750" r="7" fill="#1f8a4c"/>
+  <text x="715" y="754" font-size="11" fill="#1a2332">Terminal stage (merge only, no deploy)</text>
+  <polygon points="960,743 972,750 960,757 948,750" fill="#e8b400"/>
+  <text x="980" y="754" font-size="11" fill="#1a2332">Mandatory human approval gate</text>
+  <line x1="1250" y1="750" x2="1280" y2="750" stroke="#8b1e1e" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="1290" y="754" font-size="11" fill="#1a2332">Security control link</text>
+</svg>
