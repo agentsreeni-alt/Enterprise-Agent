@@ -7,7 +7,7 @@ name = "enterprise-agent"
 version = "0.1.0"
 description = "Requirements-to-Reviewable-PR agent pipeline: orchestrator + 8 subagents with human approval gates and a security/governance foundation."
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["claude-agent-sdk>=0.2.100"]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0"]

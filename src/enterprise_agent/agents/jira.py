@@ -12,6 +12,20 @@ class JiraAgent(Stage):
     name = "jira"
     requires_gate = False
     connectors = ("jira",)
+    # Mirrors connectors/atlassian_mcp.JIRA_MCP_TOOL_ALLOWLIST as a plain,
+    # dependency-free literal (not imported) so this module never pulls in
+    # claude_agent_sdk even when only mock mode is used.
+    agent_definition = {
+        "description": "Creates Jira epics/stories from a BRD via Atlassian's remote MCP server.",
+        "mcp_server": "atlassian",
+        "allowed_tools": (
+            "getAccessibleAtlassianResources",
+            "getVisibleJiraProjects",
+            "getJiraProjectIssueTypesMetadata",
+            "createJiraIssue",
+            "getJiraIssue",
+        ),
+    }
 
     def run(self, state: PipelineState, ctx: StageContext) -> PipelineState:
         jira = ctx.connectors["jira"]

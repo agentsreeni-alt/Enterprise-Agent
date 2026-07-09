@@ -53,11 +53,16 @@ class Orchestrator:
         vault: SecretsVault | None = None,
         kill_switch: KillSwitch | None = None,
         connector_mode: str = "mock",
+        connector_mode_overrides: dict[str, str] | None = None,
     ):
         self.store = store or RunStore()
         self.vault = vault or SecretsVault()
         self.kill_switch = kill_switch or KillSwitch()
         self.connector_mode = connector_mode
+        # Per-connector-kind override, e.g. {"jira": "real"} to go live on
+        # Jira while every other connector stays mocked. Defaults to {}, so
+        # existing behavior (one global mode) is unaffected.
+        self.connector_mode_overrides = connector_mode_overrides or {}
 
     def start(self, transcript_text: str) -> PipelineState:
         state = PipelineState(run_id=new_run_id(), transcript=transcript_text)
@@ -96,7 +101,9 @@ class Orchestrator:
 
     def _build_context(self, stage: Stage, run_id: str) -> StageContext:
         connectors = {
-            kind: get_connector(kind, mode=self.connector_mode)
+            kind: get_connector(
+                kind, mode=self.connector_mode_overrides.get(kind, self.connector_mode)
+            )
             for kind in stage.connectors
         }
         audit = AuditLogger(run_dir=self.store.run_dir(run_id))
