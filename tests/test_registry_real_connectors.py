@@ -1,16 +1,26 @@
-"""Network-free tests for the real-Jira gating path. No real credentials or
-network calls happen here -- construction only validates config; the actual
-MCP call happens inside create_epic/create_story, never invoked in these tests.
+"""Network-free tests for the real-connector gating paths. No real
+credentials or network calls happen here -- construction only validates
+config; the actual MCP call happens inside each connector's methods, never
+invoked in these tests.
 """
 
 import pytest
 
+from enterprise_agent.agents.dev import DevAgent
 from enterprise_agent.agents.jira import JiraAgent
+from enterprise_agent.agents.merge import MergeAgent
+from enterprise_agent.agents.review import ReviewAgent
 from enterprise_agent.connectors.atlassian_mcp import (
     AtlassianMcpConfigError,
     AtlassianMcpConfluenceConnector,
     AtlassianMcpJiraConnector,
     SITE_URL_ENV,
+)
+from enterprise_agent.connectors.github_mcp import (
+    GitHubMcpConfigError,
+    GitHubMcpConnector,
+    REPO_ENV,
+    TOKEN_ENV,
 )
 from enterprise_agent.connectors.mocks import (
     MockConfluenceConnector,
@@ -54,7 +64,31 @@ def test_real_confluence_with_site_url_constructs_without_network(monkeypatch):
     assert connector.site_url == "https://example.atlassian.net"
 
 
-@pytest.mark.parametrize("kind", ["github", "otter"])
+def test_real_github_without_config_raises_actionable_error(monkeypatch):
+    monkeypatch.delenv(REPO_ENV, raising=False)
+    monkeypatch.delenv(TOKEN_ENV, raising=False)
+    with pytest.raises(GitHubMcpConfigError):
+        get_connector("github", mode="real")
+
+
+def test_real_github_with_config_constructs_without_network(monkeypatch):
+    monkeypatch.setenv(REPO_ENV, "acme/widgets")
+    monkeypatch.setenv(TOKEN_ENV, "fake-token")
+    connector = get_connector("github", mode="real")
+    assert isinstance(connector, GitHubMcpConnector)
+    assert connector.owner == "acme"
+    assert connector.repo == "widgets"
+    assert connector.base_branch == "main"
+
+
+def test_real_github_rejects_malformed_repo(monkeypatch):
+    monkeypatch.setenv(REPO_ENV, "not-owner-slash-repo")
+    monkeypatch.setenv(TOKEN_ENV, "fake-token")
+    with pytest.raises(GitHubMcpConfigError, match="owner/repo"):
+        get_connector("github", mode="real")
+
+
+@pytest.mark.parametrize("kind", ["otter"])
 def test_other_kinds_still_not_implemented_for_real_mode(kind):
     with pytest.raises(NotImplementedError):
         get_connector(kind, mode="real")
@@ -68,3 +102,13 @@ def test_jira_agent_declares_minimal_tool_allowlist():
         "createJiraIssue",
         "getJiraIssue",
     )
+
+
+def test_github_stage_agents_declare_minimal_tool_allowlists():
+    assert DevAgent.agent_definition["allowed_tools"] == (
+        "create_branch",
+        "create_or_update_file",
+        "create_pull_request",
+    )
+    assert ReviewAgent.agent_definition["allowed_tools"] == ("pull_request_review_write",)
+    assert MergeAgent.agent_definition["allowed_tools"] == ("merge_pull_request",)

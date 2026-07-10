@@ -97,9 +97,36 @@ Without `ENTERPRISE_AGENT_ATLASSIAN_SITE_URL` set, `get_connector("jira" | "conf
 mode="real")` raises `AtlassianMcpConfigError` naming this setup step.
 Mock mode is entirely unaffected and needs none of this.
 
+## Real GitHub (via GitHub's remote MCP server)
+
+The GitHub connector has a real implementation in `connectors/github_mcp.py`,
+gated behind `connector_mode_overrides={"github": "real"}` on the
+`Orchestrator` (everything else stays mocked). It talks to GitHub's hosted
+MCP server instead of a hand-rolled REST client, so no GitHub token is ever
+embedded in this codebase. Powers the Dev (opens PR), Review (posts review),
+and Merge (merges PR) stages.
+
+Set, via `.env.example`:
+- `ENTERPRISE_AGENT_GITHUB_REPO` (`"owner/repo"`)
+- `ENTERPRISE_AGENT_GITHUB_TOKEN` (fine-grained PAT scoped to that repo's
+  contents + pull-requests permissions only)
+- `ENTERPRISE_AGENT_GITHUB_BASE_BRANCH` (optional, defaults to `main`)
+
+Store the token as an env var / secrets-manager entry only — never in code
+or git. Without `ENTERPRISE_AGENT_GITHUB_REPO`/`_TOKEN` set,
+`get_connector("github", mode="real")` raises `GitHubMcpConfigError` naming
+this setup step. Mock mode is entirely unaffected and needs none of this.
+
+**Known limitation:** the Dev stage is still a deterministic stub (see
+`PROJECT_PLAN.md` Phase 3) — it produces a plain diff *string*, not real
+code changes, and GitHub's MCP tool set has no "apply unified diff"
+primitive. Until Phase 3 lands real code generation, `open_pull_request`
+commits that diff text verbatim to a marker file so the PR has a real,
+reviewable commit against base, rather than applying it as actual code.
+
 ## Not yet implemented
 
 See `PROJECT_PLAN.md` for the phased roadmap. In short: real LLM-driven stage
-intelligence, real GitHub/Otter clients, real secrets vault, real
+intelligence, a real Otter client, real secrets vault, real
 sandboxing/container isolation, durable audit storage beyond a local JSONL
 file, a web approval UI, and real anomaly detection.

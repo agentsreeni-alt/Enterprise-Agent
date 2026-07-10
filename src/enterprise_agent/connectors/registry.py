@@ -40,6 +40,12 @@ def get_connector(kind: ConnectorKind, mode: ConnectorMode = "mock"):
             )
 
             return build_real_confluence_connector()
+        if kind == "github":
+            from enterprise_agent.connectors.github_mcp import (
+                build_real_github_connector,
+            )
+
+            return build_real_github_connector()
         raise NotImplementedError(f"wire up real {kind} client here")
     if kind not in _MOCKS:
         raise ValueError(f"unknown connector kind: {kind}")

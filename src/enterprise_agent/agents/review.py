@@ -14,6 +14,12 @@ class ReviewAgent(Stage):
     name = "review"
     requires_gate = True
     connectors = ("github",)
+    # Least privilege: Review only ever posts a review, never opens/merges PRs.
+    agent_definition = {
+        "description": "Diffs a PR against its TDD + standards and posts a review via GitHub's remote MCP server.",
+        "mcp_server": "github",
+        "allowed_tools": ("pull_request_review_write",),
+    }
 
     def run(self, state: PipelineState, ctx: StageContext) -> PipelineState:
         assert state.pr is not None, "ReviewAgent requires an open PR"

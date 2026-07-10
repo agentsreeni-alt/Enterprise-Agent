@@ -12,6 +12,12 @@ class MergeAgent(Stage):
     name = "merge"
     requires_gate = True
     connectors = ("github",)
+    # Least privilege: Merge only ever merges an already-approved PR.
+    agent_definition = {
+        "description": "Merges the approved PR via GitHub's remote MCP server.",
+        "mcp_server": "github",
+        "allowed_tools": ("merge_pull_request",),
+    }
 
     def run(self, state: PipelineState, ctx: StageContext) -> PipelineState:
         assert state.pr is not None, "MergeAgent requires an open PR"

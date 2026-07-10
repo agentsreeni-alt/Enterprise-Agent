@@ -21,21 +21,24 @@ sync.
 Ordered by dependency + cost, not by importance — each phase reuses
 infrastructure the previous one built where possible.
 
-### Phase 1 — Real Confluence connector
+### Phase 1 — Real Confluence connector ✅
 Extends `connectors/atlassian_mcp.py` (Confluence lives on the same
 Atlassian remote MCP server as Jira, same env vars/auth already wired).
 Unblocks the Docs stage.
-- [ ] `AtlassianMcpConfluenceConnector.publish_page`
-- [ ] Wire into `connectors/registry.py` real mode
-- [ ] Update README + `.env.example` if new env vars are needed
+- [x] `AtlassianMcpConfluenceConnector.publish_page`
+- [x] Wire into `connectors/registry.py` real mode
+- [x] Update README + `.env.example` if new env vars are needed
 
-### Phase 2 — Real GitHub connector
-New module, same pattern as Atlassian: hosted MCP server + PAT/OAuth env
-vars. Unblocks Dev/Review/Merge running against a real repo.
-- [ ] `connectors/github_mcp.py`: `open_pull_request`, `request_changes`,
+### Phase 2 — Real GitHub connector ✅
+New module, same pattern as Atlassian: hosted MCP server + PAT env vars.
+Unblocks Dev/Review/Merge running against a real repo.
+- [x] `connectors/github_mcp.py`: `open_pull_request`, `request_changes`,
       `merge_pull_request`
-- [ ] Env vars + README section (mirroring the Jira one)
-- [ ] Wire into `connectors/registry.py` real mode
+- [x] Env vars + README section (mirroring the Jira one)
+- [x] Wire into `connectors/registry.py` real mode
+- Known limitation carried forward to Phase 3: `open_pull_request` commits
+  the Dev stage's stub diff *text* to a marker file rather than applying
+  real code changes, since Dev doesn't generate real diffs yet.
 
 ### Phase 3 — LLM-driven stage content
 Replace canned strings in Intake/BRD/TDD/Review with real
