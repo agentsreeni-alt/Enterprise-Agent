@@ -195,8 +195,27 @@ substitute for real auth in a multi-reviewer deployment (see
 `PROJECT_PLAN.md`). Leaving it unset disables auth entirely -- local/dev
 use on localhost only.
 
+## Real anomaly detection
+
+Two automated, independent triggers for `KillSwitch.trigger()` -- no
+human has to notice something is wrong and flip the switch manually:
+
+- **Stage duration outliers**: with `ENTERPRISE_AGENT_AUDIT_DB` set (see
+  above), the orchestrator compares each completed stage's wall-clock
+  duration against that stage's historical mean/stdev and trips the kill
+  switch if it's a statistical outlier. Needs at least 3 prior runs of
+  history for a stage before it'll flag anything.
+- **DLP redactions**: the Docs stage scans BRD/TDD content with
+  `security.guardrails.count_redactions()` before publishing to
+  Confluence; any secret-shaped substring found trips the kill switch
+  immediately (via the new `StageContext.kill_switch`).
+
+Same limitation as every kill-switch check: it interrupts the orchestrator
+*between* stages, not a stage's own execution mid-call (see
+`security/kill_switch.py`).
+
 ## Not yet implemented
 
 See `PROJECT_PLAN.md` for the phased roadmap. In short: real Dev-stage code
 generation (needed before the sandbox settings above have a live
-consumer), real per-user auth for the web UI, and real anomaly detection.
+consumer) and real per-user auth for the web UI.

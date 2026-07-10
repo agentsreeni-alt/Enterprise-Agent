@@ -105,8 +105,31 @@ Known limitation, stated rather than glossed over: auth is a single shared
 token, not per-user identity/SSO. Fine as a stopgap; real multi-reviewer
 deployments need real auth -- not yet scheduled as its own phase.
 
-### Phase 7 — Real anomaly detection
-Automated triggers for `KillSwitch.trigger()` instead of manual-only.
+### Phase 7 — Real anomaly detection ✅
+Automated triggers for `KillSwitch.trigger()` instead of manual-only:
+- [x] `security/anomaly.py`: `DurationAnomalyDetector` flags a stage as an
+      outlier vs. its historical mean/stdev (from the durable SQLite audit
+      store), wired into the orchestrator between every stage
+- [x] `security/guardrails.count_redactions()` + `StageContext.kill_switch`:
+      Docs stage trips the kill switch immediately on any DLP hit before
+      publishing to Confluence
+
+## All 7 phases complete
+
+Every phase above is done: real Jira/Confluence/GitHub/transcript-source
+connectors, real LLM-driven stage content, a hardened security foundation
+(real vault backend, real sandbox settings, durable audit), a web approval
+UI, and automated anomaly detection. Remaining known limitations, all
+called out where they live rather than hidden:
+- Dev-stage code generation is still a deterministic diff-string stub
+  (`agents/dev.py`, `connectors/github_mcp.py`'s docstring) -- the
+  sandbox settings from Phase 5 have no live consumer until this lands.
+- Web UI auth is a single shared token, not per-user identity/SSO
+  (`web/app.py`'s docstring).
+- Real anomaly detection above only covers duration outliers + DLP hits;
+  it is not a general-purpose anomaly system.
+
+Any of these three are reasonable next phases if this roadmap continues.
 
 ## Working agreement
 

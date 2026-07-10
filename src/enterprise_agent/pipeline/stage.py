@@ -19,6 +19,7 @@ from typing import Any, ClassVar
 
 from enterprise_agent.pipeline.state import PipelineState
 from enterprise_agent.security.audit import AuditLogger
+from enterprise_agent.security.kill_switch import KillSwitch
 from enterprise_agent.security.vault import SecretsVault
 
 
@@ -34,6 +35,11 @@ class StageContext:
     # "stub" (default): deterministic canned content, no SDK/network dependency.
     # "real": stage calls enterprise_agent.llm.run_prompt for real generation.
     llm_mode: str = "stub"
+    # Lets a stage trigger an automated abort directly (e.g. a DLP hit on
+    # content it's about to publish) -- see security/anomaly.py and
+    # agents/docs.py. None in contexts that don't wire one up (e.g. direct
+    # unit tests of a single stage).
+    kill_switch: KillSwitch | None = None
 
 
 class Stage(ABC):

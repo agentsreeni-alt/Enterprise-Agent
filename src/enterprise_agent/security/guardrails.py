@@ -44,3 +44,11 @@ def sanitize_output(text: str) -> str:
     for pattern in _SECRET_PATTERNS:
         sanitized = pattern.sub(REDACTED, sanitized)
     return sanitized
+
+
+def count_redactions(text: str) -> int:
+    """How many secret-shaped substrings `sanitize_output` would redact.
+    Lets a stage feed a real DLP signal into anomaly detection
+    (security/anomaly.py) without having to diff before/after text.
+    """
+    return sum(len(pattern.findall(text)) for pattern in _SECRET_PATTERNS)

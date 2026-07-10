@@ -6,6 +6,7 @@ stage author to remember to call into security/* themselves.
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -22,7 +23,8 @@ from enterprise_agent.pipeline.gates import GateDecision, GateStatus
 from enterprise_agent.pipeline.stage import Stage, StageContext
 from enterprise_agent.pipeline.state import PipelineState, PipelineStatus, new_run_id
 from enterprise_agent.pipeline.store import RunStore
-from enterprise_agent.security.audit import AuditLogger
+from enterprise_agent.security.anomaly import DurationAnomalyDetector
+from enterprise_agent.security.audit import AUDIT_DB_ENV, AuditLogger
 from enterprise_agent.security.kill_switch import KillSwitch
 from enterprise_agent.security.vault import SecretsVault, build_vault_backend_from_env
 
@@ -56,10 +58,15 @@ class Orchestrator:
         connector_mode_overrides: dict[str, str] | None = None,
         llm_mode: str = "stub",
         llm_mode_overrides: dict[str, str] | None = None,
+        anomaly_detector: DurationAnomalyDetector | None = None,
     ):
         self.store = store or RunStore()
         self.vault = vault or SecretsVault(backend=build_vault_backend_from_env())
         self.kill_switch = kill_switch or KillSwitch()
+        # Automated kill-switch trigger for stage-duration outliers, using
+        # ENTERPRISE_AGENT_AUDIT_DB's history if configured -- a no-op
+        # without it (see security/anomaly.py).
+        self.anomaly_detector = anomaly_detector or DurationAnomalyDetector()
         self.connector_mode = connector_mode
         # Per-connector-kind override, e.g. {"jira": "real"} to go live on
         # Jira while every other connector stays mocked. Defaults to {}, so
@@ -114,7 +121,22 @@ class Orchestrator:
         }
         audit = AuditLogger(run_dir=self.store.run_dir(run_id))
         llm_mode = self.llm_mode_overrides.get(stage.name, self.llm_mode)
-        return StageContext(connectors=connectors, vault=self.vault, audit=audit, llm_mode=llm_mode)
+        return StageContext(
+            connectors=connectors,
+            vault=self.vault,
+            audit=audit,
+            llm_mode=llm_mode,
+            kill_switch=self.kill_switch,
+        )
+
+    def _check_duration_anomaly(self, stage_name: str, run_id: str, started_at: datetime) -> None:
+        db_path = os.environ.get(AUDIT_DB_ENV)
+        if not db_path:
+            return
+        duration = (datetime.now(timezone.utc) - started_at).total_seconds()
+        reason = self.anomaly_detector.check(Path(db_path), stage_name, run_id, duration)
+        if reason:
+            self.kill_switch.trigger(reason)
 
     def _run_until_blocked(self, state: PipelineState) -> PipelineState:
         for stage in STAGE_ORDER[state.current_stage_index :]:
@@ -125,9 +147,11 @@ class Orchestrator:
                 return state
 
             ctx = self._build_context(stage, state.run_id)
+            started_at = datetime.now(timezone.utc)
             ctx.audit.record(stage.name, "start")
             state = stage.run(state, ctx)
             ctx.audit.record(stage.name, "end")
+            self._check_duration_anomaly(stage.name, state.run_id, started_at)
 
             state.current_stage_index += 1
             state.touch()
