@@ -34,6 +34,12 @@ def get_connector(kind: ConnectorKind, mode: ConnectorMode = "mock"):
             )
 
             return build_real_jira_connector()
+        if kind == "confluence":
+            from enterprise_agent.connectors.atlassian_mcp import (
+                build_real_confluence_connector,
+            )
+
+            return build_real_confluence_connector()
         raise NotImplementedError(f"wire up real {kind} client here")
     if kind not in _MOCKS:
         raise ValueError(f"unknown connector kind: {kind}")

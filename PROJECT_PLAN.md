@@ -1,0 +1,75 @@
+# Project Plan
+
+Tracks the gap between the current scaffold and a pipeline that does real
+work. Source of truth for "what's left" — update the checkboxes as phases
+land instead of letting README's "Not yet implemented" section drift out of
+sync.
+
+## Current state (as of this plan)
+
+- Orchestrator, gates, state persistence, CLI: real, not stubbed.
+- Security foundation: real *logic*, scaffold *backends* (in-memory vault,
+  bookkeeping-only sandbox, local JSONL audit log, flag-file kill switch).
+- Jira connector: real (`connectors/atlassian_mcp.py`, via Atlassian's
+  hosted MCP server). Every other connector (Otter, GitHub, Confluence) is
+  mock-only.
+- All 8 stages produce deterministic stub content (no LLM calls anywhere
+  yet).
+
+## Phases
+
+Ordered by dependency + cost, not by importance — each phase reuses
+infrastructure the previous one built where possible.
+
+### Phase 1 — Real Confluence connector
+Extends `connectors/atlassian_mcp.py` (Confluence lives on the same
+Atlassian remote MCP server as Jira, same env vars/auth already wired).
+Unblocks the Docs stage.
+- [ ] `AtlassianMcpConfluenceConnector.publish_page`
+- [ ] Wire into `connectors/registry.py` real mode
+- [ ] Update README + `.env.example` if new env vars are needed
+
+### Phase 2 — Real GitHub connector
+New module, same pattern as Atlassian: hosted MCP server + PAT/OAuth env
+vars. Unblocks Dev/Review/Merge running against a real repo.
+- [ ] `connectors/github_mcp.py`: `open_pull_request`, `request_changes`,
+      `merge_pull_request`
+- [ ] Env vars + README section (mirroring the Jira one)
+- [ ] Wire into `connectors/registry.py` real mode
+
+### Phase 3 — LLM-driven stage content
+Replace canned strings in Intake/BRD/TDD/Review with real
+`claude-agent-sdk` calls, now that Jira/GitHub/Confluence can receive real
+content instead of stub text.
+- [ ] Intake: real summarization + open-question extraction from transcript
+- [ ] BRD: real document generation from intake summary
+- [ ] TDD: real stack-aware technical design from BRD
+- [ ] Review: real diff-vs-TDD analysis instead of canned comment
+
+### Phase 4 — Real Otter connector
+Lowest priority: no hosted MCP server for Otter, needs a direct REST client
++ API key.
+- [ ] `connectors/otter_api.py`: `get_transcript`
+- [ ] Env vars + README section
+
+### Phase 5 — Security hardening
+- [ ] Real secrets vault backend (Vault/cloud secrets manager) behind the
+      existing `SecretsVault` interface
+- [ ] Real sandbox/container isolation for Dev/Review (behind
+      `SandboxPolicy`)
+- [ ] Durable audit storage beyond local JSONL
+
+### Phase 6 — Web approval UI
+Replace CLI-only `approve`/`reject` with a real UI, same gate semantics.
+
+### Phase 7 — Real anomaly detection
+Automated triggers for `KillSwitch.trigger()` instead of manual-only.
+
+## Working agreement
+
+- One phase (or one checkbox within a phase) at a time; commit + push after
+  each, don't batch unrelated phases into one commit.
+- Every new real connector follows the Jira precedent: mock mode stays the
+  default, tests never import SDK/network code, real mode is opt-in via
+  `connector_mode_overrides`.
+- Update this file's checkboxes as work lands.

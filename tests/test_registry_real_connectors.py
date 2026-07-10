@@ -8,6 +8,7 @@ import pytest
 from enterprise_agent.agents.jira import JiraAgent
 from enterprise_agent.connectors.atlassian_mcp import (
     AtlassianMcpConfigError,
+    AtlassianMcpConfluenceConnector,
     AtlassianMcpJiraConnector,
     SITE_URL_ENV,
 )
@@ -40,7 +41,20 @@ def test_real_jira_with_site_url_constructs_without_network(monkeypatch):
     assert connector.site_url == "https://example.atlassian.net"
 
 
-@pytest.mark.parametrize("kind", ["github", "confluence", "otter"])
+def test_real_confluence_without_config_raises_actionable_error(monkeypatch):
+    monkeypatch.delenv(SITE_URL_ENV, raising=False)
+    with pytest.raises(AtlassianMcpConfigError, match="manual"):
+        get_connector("confluence", mode="real")
+
+
+def test_real_confluence_with_site_url_constructs_without_network(monkeypatch):
+    monkeypatch.setenv(SITE_URL_ENV, "https://example.atlassian.net")
+    connector = get_connector("confluence", mode="real")
+    assert isinstance(connector, AtlassianMcpConfluenceConnector)
+    assert connector.site_url == "https://example.atlassian.net"
+
+
+@pytest.mark.parametrize("kind", ["github", "otter"])
 def test_other_kinds_still_not_implemented_for_real_mode(kind):
     with pytest.raises(NotImplementedError):
         get_connector(kind, mode="real")

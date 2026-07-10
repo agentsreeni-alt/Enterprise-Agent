@@ -61,13 +61,15 @@ pytest tests/
 `tests/test_orchestrator_smoke.py` drives the entire pipeline end-to-end
 against mocks only — no network, no credentials.
 
-## Real Jira (via Atlassian's remote MCP server)
+## Real Jira + Confluence (via Atlassian's remote MCP server)
 
-The Jira connector has a real implementation in `connectors/atlassian_mcp.py`,
-gated behind `connector_mode_overrides={"jira": "real"}` on the `Orchestrator`
-(everything else stays mocked). It talks to Atlassian's hosted MCP server
+The Jira and Confluence connectors both have real implementations in
+`connectors/atlassian_mcp.py` (same hosted MCP server, same env vars), gated
+behind `connector_mode_overrides={"jira": "real"}` and/or
+`{"confluence": "real"}` on the `Orchestrator` (everything else stays
+mocked). They talk to Atlassian's hosted MCP server
 (`https://mcp.atlassian.com/v1/mcp`) instead of a hand-rolled REST client, so
-no Jira API token is ever embedded in this codebase.
+no Jira/Confluence API token is ever embedded in this codebase.
 
 Copy `.env.example` to `.env` and fill in the values below (then load it into
 your shell however you prefer, e.g. `set -a && source .env && set +a` --
@@ -91,13 +93,13 @@ One-time manual setup (cannot be done from inside this repo/CI):
    pipeline and complete the browser consent screen. Then only
    `ENTERPRISE_AGENT_ATLASSIAN_SITE_URL` needs to be set — no token env vars.
 
-Without `ENTERPRISE_AGENT_ATLASSIAN_SITE_URL` set, `get_connector("jira",
+Without `ENTERPRISE_AGENT_ATLASSIAN_SITE_URL` set, `get_connector("jira" | "confluence",
 mode="real")` raises `AtlassianMcpConfigError` naming this setup step.
 Mock mode is entirely unaffected and needs none of this.
 
 ## Not yet implemented
 
-Real LLM-driven stage intelligence for the other 7 stages, real
-GitHub/Confluence/Otter clients, real secrets vault, real sandboxing/container
-isolation, durable audit storage beyond a local JSONL file, a web approval UI,
-and real anomaly detection.
+See `PROJECT_PLAN.md` for the phased roadmap. In short: real LLM-driven stage
+intelligence, real GitHub/Otter clients, real secrets vault, real
+sandboxing/container isolation, durable audit storage beyond a local JSONL
+file, a web approval UI, and real anomaly detection.
