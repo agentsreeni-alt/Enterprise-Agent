@@ -66,6 +66,7 @@ class PipelineState:
     brd: BRDArtifact | None = None
     jira_refs: list[JiraRef] = field(default_factory=list)
     tdd: TDDArtifact | None = None
+    dev_diff: str | None = None
     pr: PullRequestRef | None = None
     review_notes: list[ReviewComment] = field(default_factory=list)
     merge_result: MergeResult | None = None

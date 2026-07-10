@@ -40,6 +40,7 @@ class DevAgent(Stage):
                 body=state.tdd.content,
                 diff=diff,
             )
+        state.dev_diff = diff
         state.pr = pr
         state.touch()
         return state

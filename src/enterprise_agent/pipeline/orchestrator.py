@@ -54,6 +54,8 @@ class Orchestrator:
         kill_switch: KillSwitch | None = None,
         connector_mode: str = "mock",
         connector_mode_overrides: dict[str, str] | None = None,
+        llm_mode: str = "stub",
+        llm_mode_overrides: dict[str, str] | None = None,
     ):
         self.store = store or RunStore()
         self.vault = vault or SecretsVault()
@@ -63,6 +65,10 @@ class Orchestrator:
         # Jira while every other connector stays mocked. Defaults to {}, so
         # existing behavior (one global mode) is unaffected.
         self.connector_mode_overrides = connector_mode_overrides or {}
+        self.llm_mode = llm_mode
+        # Per-stage-name override, e.g. {"brd": "real"} to go live on BRD
+        # content generation while every other stage stays a stub.
+        self.llm_mode_overrides = llm_mode_overrides or {}
 
     def start(self, transcript_text: str) -> PipelineState:
         state = PipelineState(run_id=new_run_id(), transcript=transcript_text)
@@ -107,7 +113,8 @@ class Orchestrator:
             for kind in stage.connectors
         }
         audit = AuditLogger(run_dir=self.store.run_dir(run_id))
-        return StageContext(connectors=connectors, vault=self.vault, audit=audit)
+        llm_mode = self.llm_mode_overrides.get(stage.name, self.llm_mode)
+        return StageContext(connectors=connectors, vault=self.vault, audit=audit, llm_mode=llm_mode)
 
     def _run_until_blocked(self, state: PipelineState) -> PipelineState:
         for stage in STAGE_ORDER[state.current_stage_index :]:

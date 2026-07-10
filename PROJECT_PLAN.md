@@ -40,14 +40,28 @@ Unblocks Dev/Review/Merge running against a real repo.
   the Dev stage's stub diff *text* to a marker file rather than applying
   real code changes, since Dev doesn't generate real diffs yet.
 
-### Phase 3 — LLM-driven stage content
+### Phase 3 — LLM-driven stage content ✅
 Replace canned strings in Intake/BRD/TDD/Review with real
 `claude-agent-sdk` calls, now that Jira/GitHub/Confluence can receive real
 content instead of stub text.
-- [ ] Intake: real summarization + open-question extraction from transcript
-- [ ] BRD: real document generation from intake summary
-- [ ] TDD: real stack-aware technical design from BRD
-- [ ] Review: real diff-vs-TDD analysis instead of canned comment
+- [x] Intake: real summarization + open-question extraction from transcript
+- [x] BRD: real document generation from intake summary
+- [x] TDD: real stack-aware technical design from BRD
+- [x] Review: real diff-vs-TDD analysis instead of canned comment
+
+Implementation notes:
+- New `llm.py` module wraps `claude_agent_sdk.query` for plain
+  text/JSON-generation calls (no tools/MCP servers -- these aren't agentic,
+  just generation). Only imported inside each stage's real-mode branch, so
+  stub mode (the default, all tests) never depends on it.
+- `StageContext.llm_mode` ("stub" default / "real") and
+  `Orchestrator(llm_mode=..., llm_mode_overrides=...)` mirror the existing
+  `connector_mode`/`connector_mode_overrides` pattern exactly.
+- Fixed a real gap surfaced while wiring Review: `DevAgent` generated a diff
+  but never persisted it onto `PipelineState` (`dev_diff` field added), so
+  Review had nothing to actually review. Not itself an LLM change, but
+  Review's stated job ("diff the PR against the TDD") was structurally
+  impossible without it.
 
 ### Phase 4 — Real Otter connector
 Lowest priority: no hosted MCP server for Otter, needs a direct REST client

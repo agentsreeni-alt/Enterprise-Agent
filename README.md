@@ -124,6 +124,15 @@ primitive. Until Phase 3 lands real code generation, `open_pull_request`
 commits that diff text verbatim to a marker file so the PR has a real,
 reviewable commit against base, rather than applying it as actual code.
 
+## Real LLM-driven stage content
+
+Intake, BRD, TDD, and Review can generate real content via
+`claude-agent-sdk` instead of their deterministic stub strings, gated
+behind `llm_mode="real"` (and/or per-stage `llm_mode_overrides={"brd": "real"}`)
+on the `Orchestrator` -- same pattern as `connector_mode`/
+`connector_mode_overrides`. Defaults to `llm_mode="stub"`, so existing
+behavior (and every test) is unaffected unless a run opts in.
+
 ## Not yet implemented
 
 See `PROJECT_PLAN.md` for the phased roadmap. In short: real LLM-driven stage

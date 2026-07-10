@@ -31,6 +31,9 @@ class StageContext:
     connectors: dict[str, Any]
     vault: SecretsVault
     audit: AuditLogger
+    # "stub" (default): deterministic canned content, no SDK/network dependency.
+    # "real": stage calls enterprise_agent.llm.run_prompt for real generation.
+    llm_mode: str = "stub"
 
 
 class Stage(ABC):
