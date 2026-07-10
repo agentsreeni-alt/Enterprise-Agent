@@ -77,8 +77,21 @@ class Orchestrator:
         # content generation while every other stage stays a stub.
         self.llm_mode_overrides = llm_mode_overrides or {}
 
+    def _mode_config(self) -> dict:
+        return {
+            "connector_mode": self.connector_mode,
+            "connector_mode_overrides": self.connector_mode_overrides,
+            "llm_mode": self.llm_mode,
+            "llm_mode_overrides": self.llm_mode_overrides,
+        }
+
     def start(self, transcript_text: str) -> PipelineState:
         state = PipelineState(run_id=new_run_id(), transcript=transcript_text)
+        # Persist the mode this run was started with -- a later approve/reject
+        # is typically a fresh CLI process with its own freshly-constructed
+        # Orchestrator(), which must not silently fall back to that new
+        # instance's (possibly different) defaults for the rest of this run.
+        self.store.save_config(state.run_id, self._mode_config())
         return self._run_until_blocked(state)
 
     def resume(
@@ -112,15 +125,16 @@ class Orchestrator:
         state.status = PipelineStatus.RUNNING
         return self._run_until_blocked(state)
 
-    def _build_context(self, stage: Stage, run_id: str) -> StageContext:
+    def _build_context(self, stage: Stage, run_id: str, mode_config: dict) -> StageContext:
         connectors = {
             kind: get_connector(
-                kind, mode=self.connector_mode_overrides.get(kind, self.connector_mode)
+                kind,
+                mode=mode_config["connector_mode_overrides"].get(kind, mode_config["connector_mode"]),
             )
             for kind in stage.connectors
         }
         audit = AuditLogger(run_dir=self.store.run_dir(run_id))
-        llm_mode = self.llm_mode_overrides.get(stage.name, self.llm_mode)
+        llm_mode = mode_config["llm_mode_overrides"].get(stage.name, mode_config["llm_mode"])
         return StageContext(
             connectors=connectors,
             vault=self.vault,
@@ -139,6 +153,11 @@ class Orchestrator:
             self.kill_switch.trigger(reason)
 
     def _run_until_blocked(self, state: PipelineState) -> PipelineState:
+        # Falls back to this instance's own config only for runs started
+        # before config persistence existed (or state built directly in a
+        # test) -- every run started via start() always has one on disk.
+        mode_config = self.store.load_config(state.run_id) or self._mode_config()
+
         for stage in STAGE_ORDER[state.current_stage_index :]:
             if self.kill_switch.is_triggered():
                 state.status = PipelineStatus.ABORTED
@@ -146,7 +165,7 @@ class Orchestrator:
                 self.store.save_state(state)
                 return state
 
-            ctx = self._build_context(stage, state.run_id)
+            ctx = self._build_context(stage, state.run_id, mode_config)
             started_at = datetime.now(timezone.utc)
             ctx.audit.record(stage.name, "start")
             state = stage.run(state, ctx)

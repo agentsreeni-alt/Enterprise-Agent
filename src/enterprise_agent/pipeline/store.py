@@ -23,6 +23,9 @@ class RunStore:
     def state_path(self, run_id: str) -> Path:
         return self.run_dir(run_id) / "state.json"
 
+    def config_path(self, run_id: str) -> Path:
+        return self.run_dir(run_id) / "config.json"
+
     def save_state(self, state: PipelineState) -> None:
         path = self.state_path(state.run_id)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -33,6 +36,23 @@ class RunStore:
         if not path.exists():
             raise FileNotFoundError(f"no run found with id {run_id}")
         return PipelineState.from_dict(json.loads(path.read_text()))
+
+    def save_config(self, run_id: str, config: dict) -> None:
+        """Persists the connector/LLM mode a run was *started* with, so a
+        later `approve`/`reject` -- typically a fresh CLI process with its
+        own freshly-constructed Orchestrator -- resumes with the exact same
+        real/mock settings rather than silently falling back to whatever
+        that new Orchestrator instance's defaults happen to be.
+        """
+        path = self.config_path(run_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(config, indent=2))
+
+    def load_config(self, run_id: str) -> dict | None:
+        path = self.config_path(run_id)
+        if not path.exists():
+            return None
+        return json.loads(path.read_text())
 
     def list_runs(self) -> list[str]:
         if not self.runs_dir.exists():

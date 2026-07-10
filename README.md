@@ -39,6 +39,12 @@ pip install -e ".[dev]"
 python -m enterprise_agent run --input transcript.txt
 # -> pauses at the Intake gate, prints a run_id
 
+python -m enterprise_agent run --input transcript.txt --real jira,confluence --llm-real
+# -> same, but Jira/Confluence hit real accounts (env vars required, see
+# "Real Jira + Confluence" below) and content is real LLM-generated.
+# This choice is persisted per-run -- every later approve/reject on this
+# run_id automatically keeps using it, even from a separate CLI invocation.
+
 python -m enterprise_agent approve --run-id <id> --reviewer alice --comment "lgtm"
 # -> repeat through BRD, TDD, Review, and Merge gates to reach status=completed
 

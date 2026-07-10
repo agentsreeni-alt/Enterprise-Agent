@@ -131,6 +131,28 @@ called out where they live rather than hidden:
 
 Any of these three are reasonable next phases if this roadmap continues.
 
+## Bugs found and fixed during pilot-testing prep
+
+Not roadmap phases -- real defects found while getting ready to run the
+pipeline against a real Jira/GitHub for the first time, fixed immediately
+rather than logged for later:
+
+- **Intake discarded the caller-supplied transcript.** `Orchestrator.start(text)`
+  set `state.transcript`, but `IntakeAgent` unconditionally overwrote it by
+  fetching from the otter connector -- so `run --input file.txt` had no
+  effect on pipeline input; every run used identical connector-fetched
+  text. Fixed: Intake now honors an already-supplied transcript and only
+  falls back to the connector when none was given.
+- **Connector/LLM mode wasn't persisted per-run.** A CLI-driven run always
+  spans multiple processes (`run`, then a later `approve`), each
+  constructing its own `Orchestrator()`. Mode lived only on that in-memory
+  instance, so a run started with `--real jira` could silently fall back
+  to mock on its next gate if the next CLI invocation didn't repeat the
+  flag. Fixed: `RunStore.save_config`/`load_config` persist the mode a run
+  was started with; `resume()` always reloads it. Also exposed `--real`
+  and `--llm-real` on the CLI's `run` command -- previously the only way
+  to invoke real mode at all was writing a Python script.
+
 ## Working agreement
 
 - One phase (or one checkbox within a phase) at a time; commit + push after

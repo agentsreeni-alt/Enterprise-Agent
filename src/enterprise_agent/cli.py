@@ -45,7 +45,11 @@ def _print_state_summary(state: PipelineState) -> None:
 
 def cmd_run(args: argparse.Namespace) -> int:
     transcript_text = Path(args.input).read_text()
-    orch = Orchestrator()
+    real_kinds = [k.strip() for k in args.real.split(",")] if args.real else []
+    orch = Orchestrator(
+        connector_mode_overrides={k: "real" for k in real_kinds},
+        llm_mode="real" if args.llm_real else "stub",
+    )
     state = orch.start(transcript_text)
     _print_state_summary(state)
     return 0
@@ -117,6 +121,22 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_run = sub.add_parser("run", help="Start a new pipeline run from a transcript file")
     p_run.add_argument("--input", required=True, help="Path to a transcript/notes text file")
+    p_run.add_argument(
+        "--real",
+        default=None,
+        help=(
+            "Comma-separated connector kinds to run in real mode, e.g. "
+            "'jira,confluence,github,otter'. Requires that connector's env "
+            "vars to be set (see README.md/.env.example). Everything else "
+            "stays mocked. This choice is persisted for the whole run -- "
+            "later `approve`/`reject` calls automatically keep using it."
+        ),
+    )
+    p_run.add_argument(
+        "--llm-real",
+        action="store_true",
+        help="Generate real Intake/BRD/TDD/Review content via claude-agent-sdk instead of stub text.",
+    )
     p_run.set_defaults(func=cmd_run)
 
     p_approve = sub.add_parser("approve", help="Approve the current gate and continue")
