@@ -47,6 +47,9 @@ python -m enterprise_agent reject --run-id <id> --reviewer alice --comment "not 
 
 python -m enterprise_agent status --run-id <id>
 python -m enterprise_agent list-runs
+
+python -m enterprise_agent serve
+# -> web approval UI at http://127.0.0.1:8000, requires `pip install -e ".[web]"`
 ```
 
 Setting a kill-switch flag (`.enterprise_agent/KILLSWITCH`) aborts any run
@@ -176,8 +179,24 @@ behavior (and every test) is unaffected unless a run opts in.
   audit record to a SQLite database (in addition to, not instead of, the
   per-run `audit.log` JSONL file).
 
+## Web approval UI
+
+`python -m enterprise_agent serve` (requires `pip install -e ".[web]"`)
+runs a small FastAPI app that lists runs, shows each run's artifacts and
+gate history, and lets a reviewer approve/reject directly from the
+browser -- through the exact same `Orchestrator.resume()` path the CLI
+uses, so gate semantics are identical either way. Options:
+- `--host` / `--port` (default `127.0.0.1:8000`)
+
+Set `ENTERPRISE_AGENT_WEB_UI_TOKEN` to require a shared token on every
+request (`?token=...` in the URL). **Known limitation:** this is a single
+shared secret, not per-user identity/SSO -- fine as a stopgap, not a
+substitute for real auth in a multi-reviewer deployment (see
+`PROJECT_PLAN.md`). Leaving it unset disables auth entirely -- local/dev
+use on localhost only.
+
 ## Not yet implemented
 
 See `PROJECT_PLAN.md` for the phased roadmap. In short: real Dev-stage code
 generation (needed before the sandbox settings above have a live
-consumer), a web approval UI, and real anomaly detection.
+consumer), real per-user auth for the web UI, and real anomaly detection.

@@ -93,8 +93,17 @@ prerequisite for the sandbox settings above to have a live, enforced
 consumer (currently just a real, correctly-shaped config object with
 nothing calling it inside a tool-using agent loop).
 
-### Phase 6 — Web approval UI
-Replace CLI-only `approve`/`reject` with a real UI, same gate semantics.
+### Phase 6 — Web approval UI ✅
+- [x] FastAPI app (`web/app.py`, optional `[web]` extra): list runs, view
+      artifacts + gate history, approve/reject through the same
+      `Orchestrator.resume()` path the CLI uses
+- [x] `python -m enterprise_agent serve` CLI subcommand (lazy import, base
+      install/tests never require fastapi/uvicorn)
+- [x] Shared-token auth (`ENTERPRISE_AGENT_WEB_UI_TOKEN`)
+
+Known limitation, stated rather than glossed over: auth is a single shared
+token, not per-user identity/SSO. Fine as a stopgap; real multi-reviewer
+deployments need real auth -- not yet scheduled as its own phase.
 
 ### Phase 7 — Real anomaly detection
 Automated triggers for `KillSwitch.trigger()` instead of manual-only.

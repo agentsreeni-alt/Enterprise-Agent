@@ -100,6 +100,17 @@ def cmd_list_runs(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_serve(args: argparse.Namespace) -> int:
+    # Lazy import: fastapi/uvicorn are an optional "web" extra, never
+    # required for run/approve/reject/status/list-runs.
+    import uvicorn
+
+    from enterprise_agent.web.app import create_app
+
+    uvicorn.run(create_app(), host=args.host, port=args.port)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="enterprise_agent")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -126,6 +137,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_list = sub.add_parser("list-runs", help="List all runs and their status")
     p_list.set_defaults(func=cmd_list_runs)
+
+    p_serve = sub.add_parser("serve", help="Run the web approval UI (requires the 'web' extra)")
+    p_serve.add_argument("--host", default="127.0.0.1")
+    p_serve.add_argument("--port", type=int, default=8000)
+    p_serve.set_defaults(func=cmd_serve)
 
     return parser
 
