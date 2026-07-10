@@ -78,12 +78,20 @@ Not yet scheduled: real Dev-stage code generation (currently a deterministic
 diff-string stub -- see the "Known limitation" note in
 `connectors/github_mcp.py` and the README's Real GitHub section).
 
-### Phase 5 — Security hardening
-- [ ] Real secrets vault backend (Vault/cloud secrets manager) behind the
-      existing `SecretsVault` interface
-- [ ] Real sandbox/container isolation for Dev/Review (behind
-      `SandboxPolicy`)
-- [ ] Durable audit storage beyond local JSONL
+### Phase 5 — Security hardening ✅
+- [x] Real secrets vault backend: pluggable `VaultBackend`
+      (`HashiCorpVaultBackend` real KV v2 HTTP client, `EnvVaultBackend`
+      fallback) behind the existing `SecretsVault` interface
+- [x] Real sandbox settings: `SandboxPolicy.as_sandbox_settings()` produces
+      a real `claude_agent_sdk.types.SandboxSettings` -- enforced once
+      Dev/Review drive a real agentic loop (they don't yet; see below)
+- [x] Durable audit storage: optional SQLite dual-write alongside the
+      existing JSONL file, via `ENTERPRISE_AGENT_AUDIT_DB`
+
+Not yet scheduled: real Dev-stage code generation is the remaining
+prerequisite for the sandbox settings above to have a live, enforced
+consumer (currently just a real, correctly-shaped config object with
+nothing calling it inside a tool-using agent loop).
 
 ### Phase 6 — Web approval UI
 Replace CLI-only `approve`/`reject` with a real UI, same gate semantics.

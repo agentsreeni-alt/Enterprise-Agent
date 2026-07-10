@@ -157,9 +157,27 @@ on the `Orchestrator` -- same pattern as `connector_mode`/
 `connector_mode_overrides`. Defaults to `llm_mode="stub"`, so existing
 behavior (and every test) is unaffected unless a run opts in.
 
+## Security hardening (vault, sandbox, durable audit)
+
+- **Secrets vault**: `SecretsVault` now reads real secrets from a pluggable
+  `VaultBackend` -- a real HashiCorp Vault server (KV v2 API) when
+  `ENTERPRISE_AGENT_VAULT_ADDR` + `ENTERPRISE_AGENT_VAULT_TOKEN` are set, or
+  `ENTERPRISE_AGENT_SECRET_<CONNECTOR>` env vars otherwise. Falls back to a
+  synthesized dev-mode token when neither is configured for a connector, so
+  existing mock-mode behavior is unchanged.
+- **Sandbox**: `SandboxPolicy.as_sandbox_settings()` produces a real
+  `claude_agent_sdk.types.SandboxSettings` (bash-command filesystem/network
+  isolation, mapping `no_network_to` to `deniedDomains`). This becomes
+  genuinely enforced once Dev/Review actually drive an agentic
+  `claude_agent_sdk.query()` loop with tool access -- which they don't yet
+  (see "Not yet implemented" below) -- so today it's a real, usable config
+  object without a live consumer.
+- **Durable audit**: set `ENTERPRISE_AGENT_AUDIT_DB` to also write every
+  audit record to a SQLite database (in addition to, not instead of, the
+  per-run `audit.log` JSONL file).
+
 ## Not yet implemented
 
 See `PROJECT_PLAN.md` for the phased roadmap. In short: real Dev-stage code
-generation, real secrets vault, real sandboxing/container isolation,
-durable audit storage beyond a local JSONL file, a web approval UI, and
-real anomaly detection.
+generation (needed before the sandbox settings above have a live
+consumer), a web approval UI, and real anomaly detection.

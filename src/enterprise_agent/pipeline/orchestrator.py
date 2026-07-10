@@ -24,7 +24,7 @@ from enterprise_agent.pipeline.state import PipelineState, PipelineStatus, new_r
 from enterprise_agent.pipeline.store import RunStore
 from enterprise_agent.security.audit import AuditLogger
 from enterprise_agent.security.kill_switch import KillSwitch
-from enterprise_agent.security.vault import SecretsVault
+from enterprise_agent.security.vault import SecretsVault, build_vault_backend_from_env
 
 STAGE_ORDER: list[Stage] = [
     IntakeAgent(),
@@ -58,7 +58,7 @@ class Orchestrator:
         llm_mode_overrides: dict[str, str] | None = None,
     ):
         self.store = store or RunStore()
-        self.vault = vault or SecretsVault()
+        self.vault = vault or SecretsVault(backend=build_vault_backend_from_env())
         self.kill_switch = kill_switch or KillSwitch()
         self.connector_mode = connector_mode
         # Per-connector-kind override, e.g. {"jira": "real"} to go live on
