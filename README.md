@@ -69,6 +69,10 @@ gated behind `connector_mode_overrides={"jira": "real"}` on the `Orchestrator`
 (`https://mcp.atlassian.com/v1/mcp`) instead of a hand-rolled REST client, so
 no Jira API token is ever embedded in this codebase.
 
+Copy `.env.example` to `.env` and fill in the values below (then load it into
+your shell however you prefer, e.g. `set -a && source .env && set +a` --
+nothing in this repo reads `.env` automatically).
+
 One-time manual setup (cannot be done from inside this repo/CI):
 
 1. **Recommended — headless API token** (works in CI/cron/ephemeral
