@@ -1,0 +1,50 @@
+Meeting: Compliance requirements review — PII access logging
+Attendees: Renee (Legal/Compliance), Faiza (Eng), Ben (Support ops manager)
+
+Renee: We're preparing for a customer's vendor security audit next quarter, and
+one of their requirements is that we can produce an access log for any PII field
+a support agent has viewed — who looked at what, when, and ideally why.
+
+Ben: Today support agents can see full customer records — email, phone, billing
+address, last four of payment method — with no logging of individual field views,
+just a generic "ticket opened" log.
+
+Faiza: So we'd need field-level access logging, not just record-level. That's a
+bigger change than it sounds — right now the UI renders the whole customer object
+in one API response, so we don't have a clean signal for "agent viewed the phone
+number" versus "agent viewed the shipping address."
+
+Renee: The audit requirement is specifically about PII fields — email, phone,
+physical address, payment info. It doesn't need to cover every field in the
+system, just those categories.
+
+Faiza: That narrows it. We could tag those specific fields in the schema and log
+access at the point they're serialized into an API response, rather than trying
+to track UI-level rendering.
+
+Ben: Would this slow down the support tooling? Agents already complain the
+console is slow during peak ticket volume.
+
+Faiza: Logging itself should be cheap if it's async — write the log entry after
+the response is already on its way, not blocking on it. I don't expect a
+noticeable slowdown, but we should measure it rather than assume.
+
+Renee: Retention is the other piece. The audit wants at least 12 months of access
+history, queryable by customer or by agent. What's our current log retention?
+
+Faiza: Our general application logs roll off after 30 days. This would need its
+own retention policy, separate from the default, and it needs to be tamper-evident
+— an agent shouldn't be able to delete their own access record.
+
+Ben: Do we need a "reason" field, or just record what was accessed? Some audit
+frameworks want a stated business reason per access.
+
+Renee: This particular auditor doesn't require a reason code, just who/what/when.
+I'd rather not add a reason field now if it's not required — it adds friction for
+agents and we can always add it later if a future audit needs it.
+
+Faiza: Understood. Open question for me: does this apply retroactively, or only
+to access going forward from when we ship it? I assume forward-only, but want
+that confirmed since it affects how we message this internally.
+
+Renee: Forward-only is fine, we'll note the start date in the audit response.

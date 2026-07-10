@@ -1,0 +1,46 @@
+Meeting: Incident follow-up — checkout timeouts during flash sale
+Attendees: Wei (Eng), Alicia (SRE), Tom (Product)
+
+Wei: Post-mortem on Saturday's flash sale. Checkout error rate spiked to 18% during
+the first 10 minutes, mostly 504 timeouts. Traffic was about 6x normal peak.
+
+Alicia: Root cause looks like the inventory-check service. It does a synchronous
+call per line item to the pricing service, and pricing was the bottleneck —
+p99 latency went from 200ms to over 9 seconds under load.
+
+Tom: Customers were seeing spinners and then failures. We lost an estimated
+$140K in abandoned carts in that window based on the funnel drop-off.
+
+Wei: The fix isn't complicated in principle — batch the pricing lookups instead of
+one call per line item, and add a circuit breaker so checkout degrades gracefully
+instead of hanging for 9 seconds per item.
+
+Alicia: Agreed on the circuit breaker. If pricing is unhealthy, we should fail fast
+with a clear "try again" message rather than timing out the whole checkout request.
+
+Tom: Can we also just cache pricing more aggressively during known high-traffic
+windows? We know flash sales in advance.
+
+Wei: We could, but stale pricing during a sale is risky — if a price changes mid-
+sale and we serve cached, that's a real business problem, not just a UX one.
+I'd rather fix the batching and add the circuit breaker first, and treat caching
+as a separate, carefully-scoped follow-up.
+
+Alicia: What's an acceptable timeout budget for checkout overall? Right now
+there's no end-to-end SLA, individual services just have their own timeouts
+stacked on top of each other, which is part of why one slow dependency cascades.
+
+Tom: I don't have a number off the top of my head. Let's say checkout should
+fail within 5 seconds if something's wrong, rather than 9+ seconds hanging.
+
+Wei: That's a reasonable target but it needs buy-in from whoever owns the overall
+checkout SLA — I don't think that's been formally defined anywhere.
+
+Tom: Fair, let's flag that as an open question rather than guess.
+
+Alicia: One more open question — do we need load testing before this ships, given
+it's touching the checkout critical path? I don't want to fix one bottleneck and
+discover a new one at the next sale.
+
+Wei: Yes, I'd want a load test against Saturday's traffic profile before we call
+this done.

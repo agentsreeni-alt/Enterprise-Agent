@@ -1,0 +1,48 @@
+Meeting: Finance ops request — billing data export
+Attendees: Carlos (Finance), Nina (Eng), Priya (Product)
+
+Carlos: Every month-end close, my team pulls billing data by asking an engineer
+to run a one-off SQL query and email us a CSV. It's slow, error-prone, and it
+means an engineer's time is tied to our close calendar every single month.
+
+Priya: How many fields are we talking about, and does it change month to month?
+
+Carlos: Mostly stable — invoice ID, customer ID, amount, currency, invoice date,
+payment status, and the Stripe transaction ID for reconciliation. Occasionally we
+need a one-off cut by region or plan tier, but the core export is the same every
+month.
+
+Nina: We could build a self-service export in the admin console — pick a date
+range, hit export, get a CSV. That covers the recurring case. The occasional
+one-off custom cuts are harder to generalize without just rebuilding a query
+builder, which feels like overkill for finance's actual need.
+
+Carlos: The recurring monthly export would already solve 90% of our pain. I can
+live with pinging engineering for the rare custom cut.
+
+Priya: Who should have access to this export? It's financial data, presumably
+not every admin console user.
+
+Carlos: Just Finance team members, and it should probably require whatever our
+strongest internal auth is, given it includes transaction IDs.
+
+Nina: We can gate it behind a new permission scope rather than general admin
+access. Question: does this need to be an audited action too, similar to the PII
+logging work — who exported what, when?
+
+Carlos: I'd assume yes, though I'm not the right person to confirm that
+requirement. Compliance would need to weigh in.
+
+Priya: Let's flag that as a dependency rather than assume — if it turns out we
+need it, this ties into the audit logging work that's already in flight.
+
+Nina: Format-wise, CSV is fine, but should we also support a scheduled export —
+e.g., automatically emailed on the first business day of the month — instead of
+someone having to remember to click a button?
+
+Carlos: That would genuinely remove the manual step entirely, which is the real
+goal here. I'd prioritize that over ad-hoc export if we can only ship one first.
+
+Priya: Good, let's scope v1 as: scheduled monthly CSV export, Finance-only
+access, core field set Carlos listed. Ad-hoc date-range export and the audit-
+logging dependency are both open questions to resolve before final scope.

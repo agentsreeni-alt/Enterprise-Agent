@@ -1,0 +1,50 @@
+Meeting: Security incident review — public API scraping
+Attendees: Sam (Security), Wei (Eng), Tom (Product)
+
+Sam: Over the weekend we detected a sustained scraping pattern against the public
+product-catalog API — roughly 200 requests/second from a rotating set of IPs,
+sustained for about 6 hours before we manually blocked the ASN at the CDN level.
+
+Wei: We don't have any rate limiting on that endpoint today, it's just open. The
+CDN block was a manual, reactive fix, not something that'll catch the next one
+automatically.
+
+Tom: Is this actually harmful, or just annoying? It's public product data, not
+customer data.
+
+Sam: Two concerns even for public data: it's a competitor almost certainly
+scraping our full catalog and pricing, and secondarily it degraded latency for
+real users during the scrape — p95 response time on that endpoint tripled.
+
+Wei: So this is really a rate-limiting-for-availability problem as much as a
+data-protection one. Either way, the fix is the same: per-IP and per-API-key
+rate limits on the public endpoints, with a sensible default and the ability to
+tune it per endpoint.
+
+Sam: Agreed. I'd want a low default limit on unauthenticated requests, and a
+higher limit for requests that come with a registered API key, so legitimate
+integration partners aren't punished for the same fix.
+
+Tom: Do we have API keys for all our current integration partners already, or
+would this break someone who's been hitting the endpoint anonymously?
+
+Wei: That's a real risk. We'd need to audit current traffic first, identify any
+high-volume anonymous consumers, and reach out before flipping on a strict limit
+— otherwise we could break a legitimate partner integration without warning.
+
+Sam: Reasonable. I'd suggest a rollout in two phases: log-only mode first, where
+we record what would have been rate-limited without actually blocking, then a
+real enforcement phase once we've reviewed who'd be affected.
+
+Tom: How long should the log-only phase run before we flip enforcement on?
+
+Sam: I don't have a strong number — enough to capture a normal weekly traffic
+pattern, so at least one full week, probably two to be safe against a slow
+partner cycle. Not a hard requirement, more a judgment call for whoever owns the
+rollout.
+
+Wei: We'll also want alerting when the rate limiter itself is actively blocking
+a meaningful volume of traffic, so we notice future scraping attempts instead of
+finding out from a support ticket or, worse, not noticing at all.
+
+Sam: Agreed, that should be part of this rather than a later add-on.
