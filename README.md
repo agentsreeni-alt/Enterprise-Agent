@@ -117,12 +117,36 @@ or git. Without `ENTERPRISE_AGENT_GITHUB_REPO`/`_TOKEN` set,
 `get_connector("github", mode="real")` raises `GitHubMcpConfigError` naming
 this setup step. Mock mode is entirely unaffected and needs none of this.
 
-**Known limitation:** the Dev stage is still a deterministic stub (see
-`PROJECT_PLAN.md` Phase 3) — it produces a plain diff *string*, not real
-code changes, and GitHub's MCP tool set has no "apply unified diff"
-primitive. Until Phase 3 lands real code generation, `open_pull_request`
-commits that diff text verbatim to a marker file so the PR has a real,
-reviewable commit against base, rather than applying it as actual code.
+**Known limitation:** the Dev stage is still a deterministic stub (real
+code generation for Dev isn't scheduled as its own `PROJECT_PLAN.md` phase
+yet) — it produces a plain diff *string*, not real code changes, and
+GitHub's MCP tool set has no "apply unified diff" primitive. Until Dev
+generates real changes, `open_pull_request` commits that diff text
+verbatim to a marker file so the PR has a real, reviewable commit against
+base, rather than applying it as actual code.
+
+## Real transcript source (Intake stage)
+
+The "otter" connector isn't a single-vendor Otter.ai client -- Otter has no
+well-documented public API for third-party transcript retrieval, and
+companies use all kinds of note-takers. `connectors/notetaker.py` instead
+implements two concrete backends behind the same connector interface,
+gated behind `connector_mode_overrides={"otter": "real"}`, selected by
+`ENTERPRISE_AGENT_TRANSCRIPT_SOURCE`:
+
+- **`zoom`** — Zoom's real Cloud Recording REST API via a Server-to-Server
+  OAuth app (create one in Zoom App Marketplace). Set
+  `ENTERPRISE_AGENT_ZOOM_ACCOUNT_ID`, `ENTERPRISE_AGENT_ZOOM_CLIENT_ID`,
+  `ENTERPRISE_AGENT_ZOOM_CLIENT_SECRET`.
+- **`webhook`** — a generic HTTP+API-key escape hatch for whatever your
+  actual note-taker (Otter, Fireflies, tl;dv, an internal relay, ...)
+  exposes. Set `ENTERPRISE_AGENT_TRANSCRIPT_WEBHOOK_URL` (a template
+  containing `{meeting_id}`) and, if the endpoint needs one,
+  `ENTERPRISE_AGENT_TRANSCRIPT_WEBHOOK_API_KEY` (sent as a Bearer token).
+
+Without `ENTERPRISE_AGENT_TRANSCRIPT_SOURCE` set to a recognized value,
+`get_connector("otter", mode="real")` raises `NotetakerConfigError` naming
+this setup step. Mock mode is entirely unaffected and needs none of this.
 
 ## Real LLM-driven stage content
 
@@ -135,7 +159,7 @@ behavior (and every test) is unaffected unless a run opts in.
 
 ## Not yet implemented
 
-See `PROJECT_PLAN.md` for the phased roadmap. In short: real LLM-driven stage
-intelligence, a real Otter client, real secrets vault, real
-sandboxing/container isolation, durable audit storage beyond a local JSONL
-file, a web approval UI, and real anomaly detection.
+See `PROJECT_PLAN.md` for the phased roadmap. In short: real Dev-stage code
+generation, real secrets vault, real sandboxing/container isolation,
+durable audit storage beyond a local JSONL file, a web approval UI, and
+real anomaly detection.

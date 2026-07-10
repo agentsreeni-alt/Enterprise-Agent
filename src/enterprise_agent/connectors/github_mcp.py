@@ -14,9 +14,9 @@ hosted MCP server. Set:
 - ENTERPRISE_AGENT_GITHUB_MCP_URL (optional override)
 
 Known limitation: `open_pull_request` receives a plain diff *string* (the
-Dev stage is still a deterministic stub -- see PROJECT_PLAN.md Phase 3 --
-not real code generation yet), and GitHub's MCP tool set has no "apply
-unified diff" primitive. Until Phase 3 lands, this commits the diff text
+Dev stage is still a deterministic stub, not real code generation yet --
+see PROJECT_PLAN.md), and GitHub's MCP tool set has no "apply unified diff"
+primitive. Until Dev generates real changes, this commits the diff text
 verbatim to a marker file on the new branch so the PR has a real, reviewable
 commit against base -- it does not apply the diff as code changes.
 """

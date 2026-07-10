@@ -63,11 +63,20 @@ Implementation notes:
   Review's stated job ("diff the PR against the TDD") was structurally
   impossible without it.
 
-### Phase 4 — Real Otter connector
-Lowest priority: no hosted MCP server for Otter, needs a direct REST client
-+ API key.
-- [ ] `connectors/otter_api.py`: `get_transcript`
-- [ ] Env vars + README section
+### Phase 4 — Real transcript source ✅
+No hosted MCP server for Otter, and no well-documented public API for
+third-party transcript retrieval from Otter.ai itself -- generalized into
+`connectors/notetaker.py` with two concrete backends behind the same
+connector interface, selected by `ENTERPRISE_AGENT_TRANSCRIPT_SOURCE`:
+- [x] `zoom`: real Zoom Cloud Recording REST API (Server-to-Server OAuth)
+- [x] `webhook`: generic HTTP+API-key escape hatch for Otter/Fireflies/tl;dv/
+      an internal relay -- anything reachable over HTTP
+- [x] Env vars + README section
+- [x] Wire into `connectors/registry.py` real mode
+
+Not yet scheduled: real Dev-stage code generation (currently a deterministic
+diff-string stub -- see the "Known limitation" note in
+`connectors/github_mcp.py` and the README's Real GitHub section).
 
 ### Phase 5 — Security hardening
 - [ ] Real secrets vault backend (Vault/cloud secrets manager) behind the

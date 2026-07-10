@@ -28,6 +28,11 @@ from enterprise_agent.connectors.mocks import (
     MockJiraConnector,
     MockOtterConnector,
 )
+from enterprise_agent.connectors.notetaker import (
+    NotetakerConfigError,
+    WebhookTranscriptConnector,
+    ZoomTranscriptConnector,
+)
 from enterprise_agent.connectors.registry import get_connector
 
 
@@ -88,10 +93,47 @@ def test_real_github_rejects_malformed_repo(monkeypatch):
         get_connector("github", mode="real")
 
 
-@pytest.mark.parametrize("kind", ["otter"])
-def test_other_kinds_still_not_implemented_for_real_mode(kind):
-    with pytest.raises(NotImplementedError):
-        get_connector(kind, mode="real")
+def test_real_otter_without_config_raises_actionable_error(monkeypatch):
+    monkeypatch.delenv("ENTERPRISE_AGENT_TRANSCRIPT_SOURCE", raising=False)
+    with pytest.raises(NotetakerConfigError):
+        get_connector("otter", mode="real")
+
+
+def test_real_otter_zoom_backend_constructs_without_network(monkeypatch):
+    monkeypatch.setenv("ENTERPRISE_AGENT_TRANSCRIPT_SOURCE", "zoom")
+    monkeypatch.setenv("ENTERPRISE_AGENT_ZOOM_ACCOUNT_ID", "acct")
+    monkeypatch.setenv("ENTERPRISE_AGENT_ZOOM_CLIENT_ID", "cid")
+    monkeypatch.setenv("ENTERPRISE_AGENT_ZOOM_CLIENT_SECRET", "secret")
+    connector = get_connector("otter", mode="real")
+    assert isinstance(connector, ZoomTranscriptConnector)
+
+
+def test_real_otter_zoom_backend_requires_all_three_env_vars(monkeypatch):
+    monkeypatch.setenv("ENTERPRISE_AGENT_TRANSCRIPT_SOURCE", "zoom")
+    monkeypatch.delenv("ENTERPRISE_AGENT_ZOOM_ACCOUNT_ID", raising=False)
+    monkeypatch.setenv("ENTERPRISE_AGENT_ZOOM_CLIENT_ID", "cid")
+    monkeypatch.setenv("ENTERPRISE_AGENT_ZOOM_CLIENT_SECRET", "secret")
+    with pytest.raises(NotetakerConfigError):
+        get_connector("otter", mode="real")
+
+
+def test_real_otter_webhook_backend_constructs_without_network(monkeypatch):
+    monkeypatch.setenv("ENTERPRISE_AGENT_TRANSCRIPT_SOURCE", "webhook")
+    monkeypatch.setenv(
+        "ENTERPRISE_AGENT_TRANSCRIPT_WEBHOOK_URL",
+        "https://relay.example.com/transcripts/{meeting_id}",
+    )
+    connector = get_connector("otter", mode="real")
+    assert isinstance(connector, WebhookTranscriptConnector)
+    assert connector.url_template.format(meeting_id="m1") == (
+        "https://relay.example.com/transcripts/m1"
+    )
+
+
+def test_real_otter_rejects_unknown_source(monkeypatch):
+    monkeypatch.setenv("ENTERPRISE_AGENT_TRANSCRIPT_SOURCE", "carrier-pigeon")
+    with pytest.raises(NotetakerConfigError):
+        get_connector("otter", mode="real")
 
 
 def test_jira_agent_declares_minimal_tool_allowlist():

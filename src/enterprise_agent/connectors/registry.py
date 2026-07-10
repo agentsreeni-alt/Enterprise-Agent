@@ -46,6 +46,12 @@ def get_connector(kind: ConnectorKind, mode: ConnectorMode = "mock"):
             )
 
             return build_real_github_connector()
+        if kind == "otter":
+            from enterprise_agent.connectors.notetaker import (
+                build_real_notetaker_connector,
+            )
+
+            return build_real_notetaker_connector()
         raise NotImplementedError(f"wire up real {kind} client here")
     if kind not in _MOCKS:
         raise ValueError(f"unknown connector kind: {kind}")
