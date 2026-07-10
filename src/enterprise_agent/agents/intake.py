@@ -19,10 +19,18 @@ class IntakeAgent(Stage):
     connectors = ("otter",)
 
     def run(self, state: PipelineState, ctx: StageContext) -> PipelineState:
-        otter = ctx.connectors["otter"]
-        transcript = otter.get_transcript(meeting_id=state.run_id)
-        untrusted = UntrustedContent(text=transcript.text, source="otter")
-        raw_text = untrusted.as_prompt_data()
+        if state.transcript:
+            # A transcript was already supplied at start() (e.g. CLI `run
+            # --input file`, or an API caller passing text directly) --
+            # honor it instead of silently discarding it in favor of a
+            # fetched one. Still routed through UntrustedContent: text
+            # from outside our own code is untrusted regardless of which
+            # door it came in.
+            raw_text = UntrustedContent(text=state.transcript, source="caller_input").as_prompt_data()
+        else:
+            otter = ctx.connectors["otter"]
+            transcript = otter.get_transcript(meeting_id=state.run_id)
+            raw_text = UntrustedContent(text=transcript.text, source="otter").as_prompt_data()
         state.transcript = raw_text
 
         if ctx.llm_mode == "real":
