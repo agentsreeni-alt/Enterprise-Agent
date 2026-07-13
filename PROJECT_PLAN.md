@@ -5,6 +5,11 @@ work. Source of truth for "what's left" — update the checkboxes as phases
 land instead of letting README's "Not yet implemented" section drift out of
 sync.
 
+See `docs/sales-readiness-dossier.html` for the executive-facing version of
+this assessment (architecture diagram, real-vs-stub matrix, platform gaps,
+pros/cons) — a point-in-time snapshot, not auto-updated as this file
+changes.
+
 ## Current state (as of this plan)
 
 - Orchestrator, gates, state persistence, CLI: real, not stubbed.
@@ -152,6 +157,39 @@ rather than logged for later:
   was started with; `resume()` always reloads it. Also exposed `--real`
   and `--llm-real` on the CLI's `run` command -- previously the only way
   to invoke real mode at all was writing a Python script.
+- **Real-mode connector failures surfaced as raw Python tracebacks.** A
+  blocked-network real-Jira call crashed the CLI with a full stack trace
+  instead of a clean message. Fixed: `errors.py`'s `RealModeError` is now
+  the common base for every real-mode exception (Atlassian, GitHub,
+  notetaker, LLM output parsing); the CLI and web UI catch it and print/
+  return a one-line, actionable error instead.
+
+## Live pilot-testing findings (this environment)
+
+Attempted a real end-to-end run against a real Atlassian site with valid
+credentials already configured. Intake and BRD ran correctly (including the
+transcript-bug fix above); the Jira stage failed. Root cause, confirmed via
+this session's own network proxy status endpoint rather than guessed: **this
+Claude Code environment's egress policy blocks outbound HTTPS to
+`mcp.atlassian.com` and `api.githubcopilot.com`** (both returned 403 at the
+CONNECT level) -- i.e. it blocks third-party MCP server hosts in general,
+not something specific to Jira. `github.com` itself (plain git operations)
+is allowed; the separate MCP API host is not.
+
+This is an environment/network-policy constraint, not a code defect --
+config construction, auth header building, and the MCP tool allowlists were
+all confirmed correct up to the point of the network call. To actually
+complete a live test:
+- Adjust this environment's network policy (claude.ai environment settings)
+  to allow `mcp.atlassian.com` and `api.githubcopilot.com`, or
+- Run the same `--real jira,confluence,github` flags from an environment
+  without that restriction (a local machine, a CI runner, or a
+  differently-configured Claude Code environment).
+
+The failed run left no partial state and created nothing on the real Jira
+site -- `RunStore` only saves state after a stage succeeds, so the run
+parked safely at the BRD gate and is resumable once the network path is
+open.
 
 ## Working agreement
 

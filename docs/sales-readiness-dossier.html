@@ -1,0 +1,547 @@
+<title>Enterprise-Agent — Sales Readiness Dossier</title>
+<style>
+  :root {
+    --ink: #12161f;
+    --paper: #f7f8fb;
+    --paper-raised: #ffffff;
+    --slate: #5b6472;
+    --slate-dim: #838c99;
+    --line: #dfe3ea;
+    --accent: #b9781a;
+    --accent-soft: #f3e4c8;
+    --good: #2f8f5b;
+    --good-soft: #e3f2ea;
+    --warn: #b9781a;
+    --warn-soft: #f7ecd8;
+    --bad: #c1432f;
+    --bad-soft: #fbe8e4;
+    --shadow: 0 1px 2px rgba(18,22,31,0.04), 0 8px 24px -12px rgba(18,22,31,0.12);
+  }
+  :root[data-theme="dark"] {
+    --ink: #eef1f6;
+    --paper: #10131a;
+    --paper-raised: #171b24;
+    --slate: #9aa3b2;
+    --slate-dim: #6d7684;
+    --line: #262b35;
+    --accent: #e0a542;
+    --accent-soft: #3a2f19;
+    --good: #4caf7d;
+    --good-soft: #163326;
+    --warn: #e0a542;
+    --warn-soft: #362a13;
+    --bad: #e2685a;
+    --bad-soft: #3a1c17;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -16px rgba(0,0,0,0.55);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #eef1f6;
+      --paper: #10131a;
+      --paper-raised: #171b24;
+      --slate: #9aa3b2;
+      --slate-dim: #6d7684;
+      --line: #262b35;
+      --accent: #e0a542;
+      --accent-soft: #3a2f19;
+      --good: #4caf7d;
+      --good-soft: #163326;
+      --warn: #e0a542;
+      --warn-soft: #362a13;
+      --bad: #e2685a;
+      --bad-soft: #3a1c17;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -16px rgba(0,0,0,0.55);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .display { font-family: Georgia, "Iowan Old Style", "URW Palladio L", "Palatino Linotype", serif; }
+  .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace; }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px 120px; }
+  .wide { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+
+  header.cover {
+    padding: 72px 0 56px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 56px;
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 12.5px;
+    color: var(--slate);
+    font-weight: 600;
+  }
+  h1.title {
+    font-size: 44px;
+    line-height: 1.12;
+    margin: 14px 0 10px;
+    text-wrap: balance;
+    font-weight: 400;
+  }
+  .subtitle {
+    font-size: 18px;
+    color: var(--slate);
+    max-width: 62ch;
+    text-wrap: balance;
+  }
+  .meta-row {
+    display: flex;
+    gap: 28px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+  .meta-item { font-size: 13px; color: var(--slate-dim); }
+  .meta-item b { color: var(--ink); font-weight: 600; display: block; font-size: 14px; margin-bottom: 2px; }
+
+  .verdict {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 26px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: var(--warn-soft);
+    border: 1px solid var(--warn);
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .verdict .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); flex: none; }
+
+  section { margin-bottom: 64px; }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+  .section-num {
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  h2 {
+    font-size: 26px;
+    font-weight: 400;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .section-dek { color: var(--slate); font-size: 15px; margin: 10px 0 28px; max-width: 68ch; }
+
+  p { margin: 0 0 16px; }
+  .lede { font-size: 18px; color: var(--ink); }
+
+  /* status pill */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px 3px 8px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: ui-monospace, "SF Mono", monospace;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .pill.real { background: var(--good-soft); color: var(--good); }
+  .pill.real .dot { background: var(--good); }
+  .pill.stub { background: var(--warn-soft); color: var(--warn); }
+  .pill.stub .dot { background: var(--warn); }
+  .pill.missing { background: var(--bad-soft); color: var(--bad); }
+  .pill.missing .dot { background: var(--bad); }
+
+  /* tables */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--paper-raised); box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; }
+  th, td { text-align: left; padding: 13px 18px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 14.5px; }
+  th { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--slate-dim); font-weight: 600; background: transparent; }
+  tr:last-child td { border-bottom: none; }
+  td.cap { font-weight: 600; }
+  td.evidence { color: var(--slate); font-size: 13.5px; font-family: ui-monospace, "SF Mono", monospace; }
+
+  /* two column ledger */
+  .ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 720px) { .ledger { grid-template-columns: 1fr; } }
+  .ledger-card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 24px;
+    background: var(--paper-raised);
+    box-shadow: var(--shadow);
+  }
+  .ledger-card h3 {
+    margin: 0 0 14px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+  .ledger-card.pro h3 { color: var(--good); }
+  .ledger-card.con h3 { color: var(--bad); }
+  .ledger-card ul { margin: 0; padding-left: 0; list-style: none; }
+  .ledger-card li { padding: 10px 0; border-top: 1px solid var(--line); font-size: 14.5px; }
+  .ledger-card li:first-child { border-top: none; padding-top: 0; }
+  .ledger-card li b { display: block; margin-bottom: 2px; }
+  .ledger-card li span { color: var(--slate); font-size: 13.5px; }
+
+  /* checklist */
+  .checklist { border: 1px solid var(--line); border-radius: 12px; background: var(--paper-raised); box-shadow: var(--shadow); overflow: hidden; }
+  .check-row { display: grid; grid-template-columns: 220px 1fr; gap: 18px; padding: 16px 22px; border-bottom: 1px solid var(--line); align-items: start; }
+  .check-row:last-child { border-bottom: none; }
+  .check-row .who { font-weight: 600; font-size: 14px; }
+  .check-row .who span { display: block; font-weight: 400; font-size: 12.5px; color: var(--slate-dim); margin-top: 2px; }
+  .check-row code {
+    font-family: ui-monospace, "SF Mono", monospace;
+    background: var(--accent-soft);
+    color: var(--ink);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .check-row .needs { font-size: 14px; }
+  .check-row .needs .vars { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* diagram */
+  .diagram-frame {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper-raised);
+    box-shadow: var(--shadow);
+    padding: 8px;
+    overflow-x: auto;
+  }
+  .diagram-frame svg { display: block; min-width: 980px; width: 100%; height: auto; }
+  .legend { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 14px; font-size: 13px; color: var(--slate); }
+  .legend .item { display: flex; align-items: center; gap: 7px; }
+  .legend .swatch { width: 12px; height: 12px; border-radius: 3px; }
+
+  /* roadmap */
+  .roadmap { display: flex; flex-direction: column; border-left: 2px solid var(--line); margin-left: 6px; }
+  .road-item { position: relative; padding: 0 0 32px 26px; }
+  .road-item:last-child { padding-bottom: 0; }
+  .road-item::before {
+    content: "";
+    position: absolute;
+    left: -7px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 2px solid var(--accent);
+  }
+  .road-item h4 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
+  .road-item p { margin: 0; color: var(--slate); font-size: 14.5px; }
+  .road-item .tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); font-weight: 700; margin-bottom: 6px; display: block; }
+
+  footer { border-top: 1px solid var(--line); padding-top: 28px; color: var(--slate-dim); font-size: 13px; }
+</style>
+
+<div class="wrap">
+  <header class="cover">
+    <div class="eyebrow">Internal readiness review · Enterprise-Agent</div>
+    <h1 class="title display">Is this ready to sell?<br>A straight answer, stage by stage.</h1>
+    <p class="subtitle">Prepared the way a VP of Enterprise Applications would brief a CIO before a pilot commitment: what's real, what's a stub, what a buyer's security team will flag in week one, and exactly what we need connected to start testing.</p>
+    <div class="verdict"><span class="dot"></span>Verdict: strong architecture, real integrations on 4 of 8 stages — not GA. Sell as a design-partner pilot, not finished software.</div>
+    <div class="meta-row">
+      <div class="meta-item"><b>66 / 66</b>tests passing, config-verified</div>
+      <div class="meta-item"><b>8</b>pipeline stages, 5 human gates</div>
+      <div class="meta-item"><b>4</b>real external integrations</div>
+      <div class="meta-item"><b>7</b>security controls wired end-to-end</div>
+    </div>
+  </header>
+
+  <section id="verdict">
+    <div class="section-head"><span class="section-num">01</span><h2>The honest read</h2></div>
+    <p class="lede">Enterprise-Agent is a genuinely well-designed orchestration skeleton — human approval gates at every risky step, least-privilege connectors, an audit trail, a kill switch, and now automated anomaly detection. That governance layer is the actual differentiator, and it's real, not a slide.</p>
+    <p>But the product's core promise — "turn a meeting into a reviewed pull request" — has a hole in the middle. The <b>Dev stage, the one that writes code, still doesn't</b>. It produces a placeholder diff string. Everything upstream (requirements, tickets, design doc) and downstream (review, merge, docs) can be made real; the actual code-generation step cannot yet. Any enterprise buyer's engineer will find this in the first working session. Lead with the governance story, not a "it writes your code" story, until that gap closes.</p>
+  </section>
+
+  <section id="whats-real">
+    <div class="section-head"><span class="section-num">02</span><h2>What's real vs. what's a stub</h2></div>
+    <p class="section-dek">Every row below is checked against the actual codebase this session — nothing here is aspirational.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Capability</th><th>Status</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td class="cap">Jira (epics/stories)</td><td><span class="pill real"><span class="dot"></span>real</span></td><td class="evidence">connectors/atlassian_mcp.py</td></tr>
+          <tr><td class="cap">Confluence (publish)</td><td><span class="pill real"><span class="dot"></span>real</span></td><td class="evidence">connectors/atlassian_mcp.py</td></tr>
+          <tr><td class="cap">GitHub (branch / PR / review / merge)</td><td><span class="pill real"><span class="dot"></span>real</span></td><td class="evidence">connectors/github_mcp.py</td></tr>
+          <tr><td class="cap">Meeting transcript source</td><td><span class="pill real"><span class="dot"></span>real</span></td><td class="evidence">connectors/notetaker.py — Zoom API or generic webhook, not Otter itself</td></tr>
+          <tr><td class="cap">Intake / BRD / TDD / Review content</td><td><span class="pill stub"><span class="dot"></span>opt-in, unproven live</span></td><td class="evidence">llm.py, llm_mode="real" — never run against live Claude yet</td></tr>
+          <tr><td class="cap">Dev stage — actual code generation</td><td><span class="pill missing"><span class="dot"></span>stub</span></td><td class="evidence">agents/dev.py — placeholder diff string only</td></tr>
+          <tr><td class="cap">Secrets vault</td><td><span class="pill real"><span class="dot"></span>real, pluggable</span></td><td class="evidence">security/vault.py — HashiCorp Vault or env-backed</td></tr>
+          <tr><td class="cap">Sandbox isolation</td><td><span class="pill stub"><span class="dot"></span>config only, no live consumer</span></td><td class="evidence">security/sandbox.py — real SandboxSettings object, nothing calls it yet</td></tr>
+          <tr><td class="cap">Audit trail</td><td><span class="pill real"><span class="dot"></span>real</span></td><td class="evidence">security/audit.py — JSONL + optional SQLite</td></tr>
+          <tr><td class="cap">Kill switch + anomaly detection</td><td><span class="pill real"><span class="dot"></span>real</span></td><td class="evidence">security/anomaly.py — duration outliers, DLP hits</td></tr>
+          <tr><td class="cap">Web approval UI</td><td><span class="pill stub"><span class="dot"></span>real but single-tenant, single shared token</span></td><td class="evidence">web/app.py — no SSO, no per-user identity</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="diagram">
+    <div class="section-head"><span class="section-num">03</span><h2>How it actually runs</h2></div>
+    <p class="section-dek">Two front doors (CLI, browser) into one orchestrator; every write-side action sits behind a gate or a least-privilege connector; the security spine wraps every stage, not just the risky ones.</p>
+    <div class="diagram-frame">
+      <svg viewBox="0 0 1080 620" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          .lbl { font-family: ui-monospace, 'SF Mono', monospace; font-size: 11px; }
+          .lbl-b { font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 12.5px; font-weight: 600; }
+          .lbl-s { font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 9.5px; }
+        </style>
+        <!-- front doors -->
+        <rect x="30" y="20" width="150" height="46" rx="8" fill="none" stroke="var(--slate)" stroke-width="1.5"/>
+        <text x="105" y="48" text-anchor="middle" class="lbl-b" fill="var(--ink)">CLI</text>
+        <rect x="900" y="20" width="150" height="46" rx="8" fill="none" stroke="var(--slate)" stroke-width="1.5"/>
+        <text x="975" y="42" text-anchor="middle" class="lbl-b" fill="var(--ink)">Web UI</text>
+        <text x="975" y="56" text-anchor="middle" class="lbl-s" fill="var(--warn)">shared token only</text>
+
+        <line x1="105" y1="66" x2="105" y2="100" stroke="var(--slate)" stroke-width="1.5"/>
+        <line x1="975" y1="66" x2="975" y2="100" stroke="var(--slate)" stroke-width="1.5"/>
+        <line x1="105" y1="100" x2="975" y2="100" stroke="var(--slate)" stroke-width="1.5"/>
+
+        <!-- orchestrator -->
+        <rect x="415" y="90" width="250" height="54" rx="10" fill="var(--ink)"/>
+        <text x="540" y="113" text-anchor="middle" class="lbl-b" fill="var(--paper)">ORCHESTRATOR</text>
+        <text x="540" y="130" text-anchor="middle" class="lbl-s" fill="var(--slate-dim)">holds no credentials itself</text>
+        <line x1="540" y1="100" x2="540" y2="144" stroke="var(--slate)" stroke-width="1.5" transform="translate(0,-100)"/>
+
+        <!-- security spine -->
+        <rect x="30" y="164" width="1020" height="40" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1"/>
+        <text x="50" y="188" class="lbl-b" fill="var(--ink)">Security spine, wraps every stage: kill-switch check → audit start → run → audit end → anomaly check</text>
+
+        <line x1="540" y1="144" x2="540" y2="164" stroke="var(--slate)" stroke-width="1.5"/>
+        <line x1="540" y1="204" x2="540" y2="224" stroke="var(--slate)" stroke-width="1.5"/>
+        <line x1="60" y1="224" x2="1020" y2="224" stroke="var(--slate)" stroke-width="1.5"/>
+
+        <!-- 8 stage boxes: x = 40 + i*126, width 118 -->
+        <g id="stages">
+          <!-- 1 Intake -->
+          <polygon points="99,224 111,236 99,248 87,236" fill="var(--accent)"/>
+          <rect x="40" y="252" width="118" height="76" rx="8" fill="var(--paper-raised)" stroke="var(--good)" stroke-width="2"/>
+          <text x="99" y="274" text-anchor="middle" class="lbl-b" fill="var(--ink)">1. Intake</text>
+          <text x="99" y="291" text-anchor="middle" class="lbl-s" fill="var(--slate)">Zoom / webhook</text>
+          <text x="99" y="304" text-anchor="middle" class="lbl-s" fill="var(--good)">real connector</text>
+          <text x="99" y="317" text-anchor="middle" class="lbl-s" fill="var(--slate-dim)">summary: llm-opt-in</text>
+
+          <!-- 2 BRD -->
+          <polygon points="225,224 237,236 225,248 213,236" fill="var(--accent)"/>
+          <rect x="166" y="252" width="118" height="76" rx="8" fill="var(--paper-raised)" stroke="var(--warn)" stroke-width="2"/>
+          <text x="225" y="274" text-anchor="middle" class="lbl-b" fill="var(--ink)">2. BRD</text>
+          <text x="225" y="291" text-anchor="middle" class="lbl-s" fill="var(--slate)">no connector</text>
+          <text x="225" y="304" text-anchor="middle" class="lbl-s" fill="var(--warn)">llm content, unproven live</text>
+
+          <!-- 3 Jira -->
+          <rect x="292" y="252" width="118" height="76" rx="8" fill="var(--paper-raised)" stroke="var(--good)" stroke-width="2"/>
+          <text x="351" y="274" text-anchor="middle" class="lbl-b" fill="var(--ink)">3. Jira</text>
+          <text x="351" y="291" text-anchor="middle" class="lbl-s" fill="var(--slate)">Atlassian MCP</text>
+          <text x="351" y="304" text-anchor="middle" class="lbl-s" fill="var(--good)">real connector</text>
+          <text x="351" y="317" text-anchor="middle" class="lbl-s" fill="var(--slate-dim)">no gate — reversible</text>
+
+          <!-- 4 TDD -->
+          <polygon points="477,224 489,236 477,248 465,236" fill="var(--accent)"/>
+          <rect x="418" y="252" width="118" height="76" rx="8" fill="var(--paper-raised)" stroke="var(--warn)" stroke-width="2"/>
+          <text x="477" y="274" text-anchor="middle" class="lbl-b" fill="var(--ink)">4. TDD</text>
+          <text x="477" y="291" text-anchor="middle" class="lbl-s" fill="var(--slate)">no connector</text>
+          <text x="477" y="304" text-anchor="middle" class="lbl-s" fill="var(--warn)">llm content, unproven live</text>
+
+          <!-- 5 Dev -->
+          <rect x="544" y="252" width="118" height="76" rx="8" fill="var(--paper-raised)" stroke="var(--bad)" stroke-width="2.5"/>
+          <text x="603" y="274" text-anchor="middle" class="lbl-b" fill="var(--ink)">5. Dev</text>
+          <text x="603" y="291" text-anchor="middle" class="lbl-s" fill="var(--slate)">GitHub PR: real</text>
+          <text x="603" y="304" text-anchor="middle" class="lbl-s" fill="var(--bad)">code diff: stub — core gap</text>
+
+          <!-- 6 Review -->
+          <polygon points="729,224 741,236 729,248 717,236" fill="var(--accent)"/>
+          <rect x="670" y="252" width="118" height="76" rx="8" fill="var(--paper-raised)" stroke="var(--warn)" stroke-width="2"/>
+          <text x="729" y="274" text-anchor="middle" class="lbl-b" fill="var(--ink)">6. Review</text>
+          <text x="729" y="291" text-anchor="middle" class="lbl-s" fill="var(--slate)">GitHub post: real</text>
+          <text x="729" y="304" text-anchor="middle" class="lbl-s" fill="var(--warn)">judgment: llm, unproven</text>
+
+          <!-- 7 Merge -->
+          <polygon points="855,224 867,236 855,248 843,236" fill="var(--accent)"/>
+          <rect x="796" y="252" width="118" height="76" rx="8" fill="var(--paper-raised)" stroke="var(--good)" stroke-width="2"/>
+          <text x="855" y="274" text-anchor="middle" class="lbl-b" fill="var(--ink)">7. Merge</text>
+          <text x="855" y="291" text-anchor="middle" class="lbl-s" fill="var(--slate)">GitHub MCP</text>
+          <text x="855" y="304" text-anchor="middle" class="lbl-s" fill="var(--good)">real connector</text>
+          <text x="855" y="317" text-anchor="middle" class="lbl-s" fill="var(--slate-dim)">pipeline ends here</text>
+
+          <!-- 8 Docs -->
+          <rect x="922" y="252" width="118" height="76" rx="8" fill="var(--paper-raised)" stroke="var(--good)" stroke-width="2"/>
+          <text x="981" y="274" text-anchor="middle" class="lbl-b" fill="var(--ink)">8. Docs</text>
+          <text x="981" y="291" text-anchor="middle" class="lbl-s" fill="var(--slate)">Confluence MCP</text>
+          <text x="981" y="304" text-anchor="middle" class="lbl-s" fill="var(--good)">real + DLP kill-switch</text>
+
+          <!-- connectors from spine to each box -->
+          <line x1="99" y1="224" x2="99" y2="252" stroke="var(--slate)" stroke-width="1.5"/>
+          <line x1="225" y1="224" x2="225" y2="252" stroke="var(--slate)" stroke-width="1.5"/>
+          <line x1="351" y1="224" x2="351" y2="252" stroke="var(--slate)" stroke-width="1.5"/>
+          <line x1="477" y1="224" x2="477" y2="252" stroke="var(--slate)" stroke-width="1.5"/>
+          <line x1="603" y1="224" x2="603" y2="252" stroke="var(--slate)" stroke-width="1.5"/>
+          <line x1="729" y1="224" x2="729" y2="252" stroke="var(--slate)" stroke-width="1.5"/>
+          <line x1="855" y1="224" x2="855" y2="252" stroke="var(--slate)" stroke-width="1.5"/>
+          <line x1="981" y1="224" x2="981" y2="252" stroke="var(--slate)" stroke-width="1.5"/>
+        </g>
+
+        <!-- bottom: security controls strip -->
+        <rect x="40" y="356" width="1000" height="58" rx="8" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="3,3"/>
+        <text x="60" y="378" class="lbl-b" fill="var(--ink)">Security controls, always on</text>
+        <text x="60" y="397" class="lbl-s" fill="var(--slate)">least-privilege connectors · secrets vault · DLP guardrails · sandbox config · audit (JSONL + SQLite) · kill switch · anomaly detection</text>
+
+        <!-- gap analysis callout -->
+        <rect x="40" y="436" width="1000" height="150" rx="10" fill="var(--bad-soft)" stroke="var(--bad)" stroke-width="1.5"/>
+        <text x="62" y="464" class="lbl-b" fill="var(--ink)">What's not in this diagram yet</text>
+        <text x="62" y="488" class="lbl-s" fill="var(--ink)">— No SSO / RBAC: Web UI auth is one shared token; CLI has none.</text>
+        <text x="62" y="507" class="lbl-s" fill="var(--ink)">— No multi-tenancy: run state is local JSON/SQLite files on a single machine.</text>
+        <text x="62" y="526" class="lbl-s" fill="var(--ink)">— No deployment platform: no Dockerfile, no CI, no health checks, no autoscaling.</text>
+        <text x="62" y="545" class="lbl-s" fill="var(--ink)">— No resilience layer: connector calls have no retry / backoff / circuit breaker.</text>
+        <text x="62" y="564" class="lbl-s" fill="var(--ink)">— Sandbox settings (security spine) have no live consumer until Dev stage is real.</text>
+      </svg>
+    </div>
+    <div class="legend">
+      <div class="item"><span class="swatch" style="background:var(--good)"></span>real integration</div>
+      <div class="item"><span class="swatch" style="background:var(--warn)"></span>stub / config-only</div>
+      <div class="item"><span class="swatch" style="background:var(--accent)"></span>human approval gate</div>
+    </div>
+  </section>
+
+  <section id="gaps">
+    <div class="section-head"><span class="section-num">04</span><h2>The platform gaps a CIO checklist actually asks about</h2></div>
+    <p class="section-dek">None of this was in scope for the pipeline work — it's the layer between "a working pipeline" and "software we can invoice for."</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Area</th><th>Status</th><th>Risk if sold as-is</th></tr></thead>
+        <tbody>
+          <tr><td class="cap">Identity — SSO / OIDC / RBAC</td><td><span class="pill missing"><span class="dot"></span>none</span></td><td>Web UI is one shared token; CLI has no auth at all. Fails any enterprise IdP requirement immediately.</td></tr>
+          <tr><td class="cap">Multi-tenancy</td><td><span class="pill missing"><span class="dot"></span>none</span></td><td>Run state is local JSON files on one machine. Two customers cannot share a deployment safely.</td></tr>
+          <tr><td class="cap">Data platform</td><td><span class="pill missing"><span class="dot"></span>none</span></td><td>No managed DB, no backup/restore, no retention policy. A disk loss is a data loss.</td></tr>
+          <tr><td class="cap">Deployment / packaging</td><td><span class="pill missing"><span class="dot"></span>none</span></td><td>No Dockerfile, no CI, no health checks. Every install is a manual clone + venv.</td></tr>
+          <tr><td class="cap">Observability</td><td><span class="pill stub"><span class="dot"></span>logs only</span></td><td>JSONL/SQLite audit exists; no metrics, tracing, or alerting integration for on-call.</td></tr>
+          <tr><td class="cap">Resilience</td><td><span class="pill missing"><span class="dot"></span>none</span></td><td>No retries/backoff/circuit breakers on connector calls. One flaky GitHub API call fails the stage.</td></tr>
+          <tr><td class="cap">Compliance posture</td><td><span class="pill missing"><span class="dot"></span>none</span></td><td>No SOC 2 / ISO 27001 program, no data-residency controls. DLP is a regex stub, not a real scanner.</td></tr>
+          <tr><td class="cap">Cost governance</td><td><span class="pill missing"><span class="dot"></span>none</span></td><td>No LLM spend tracking or rate limiting — a runaway loop has no ceiling.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="pros-cons">
+    <div class="section-head"><span class="section-num">05</span><h2>Pros and cons, for the room</h2></div>
+    <div class="ledger">
+      <div class="ledger-card pro">
+        <h3>Pros</h3>
+        <ul>
+          <li><b>Governance is real, not a slide.</b><span>Least privilege, secrets vault, DLP, sandbox config, audit trail, kill switch, anomaly detection — all wired end-to-end, all tested.</span></li>
+          <li><b>Human stays in control.</b><span>5 of 8 stages hard-stop for explicit approval; nothing merges or publishes unattended.</span></li>
+          <li><b>Real integrations, not demos.</b><span>Jira, Confluence, and GitHub are driven through their actual hosted MCP servers — no scraped APIs, no brittle glue.</span></li>
+          <li><b>Architecture invites extension.</b><span>Every connector has a clean mock/real split; adding a new system of record is a bounded, well-precedented change.</span></li>
+          <li><b>Tested discipline.</b><span>66 tests, config-path verified for every real connector, before any credential is spent.</span></li>
+        </ul>
+      </div>
+      <div class="ledger-card con">
+        <h3>Cons</h3>
+        <ul>
+          <li><b>The headline feature is fake.</b><span>Dev stage does not write code yet. This is the single biggest credibility risk in a sales conversation.</span></li>
+          <li><b>No enterprise auth.</b><span>A pilot customer's security team will ask for SSO on day one; there isn't one.</span></li>
+          <li><b>Single-tenant, single-machine.</b><span>No story yet for running this for more than one customer on shared infrastructure.</span></li>
+          <li><b>Unproven under load.</b><span>Zero performance, concurrency, or failure-injection testing has been done.</span></li>
+          <li><b>Heavy manual setup.</b><span>A pilot requires hand-configuring ~15 environment variables across 4 external systems.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="accounts">
+    <div class="section-head"><span class="section-num">06</span><h2>What we need connected to start testing</h2></div>
+    <p class="section-dek">Everything below is opt-in per system — leave any of it unset and that piece stays mocked, the rest of the pipeline still runs end-to-end.</p>
+    <div class="checklist">
+      <div class="check-row">
+        <div class="who">Atlassian<span>Jira + Confluence</span></div>
+        <div class="needs">A test-only site (not a production one). <code class="mono">ENTERPRISE_AGENT_ATLASSIAN_SITE_URL</code>, <code class="mono">_EMAIL</code>, <code class="mono">_API_TOKEN</code>.</div>
+      </div>
+      <div class="check-row">
+        <div class="who">GitHub<span>PRs, reviews, merges</span></div>
+        <div class="needs">A throwaway/sandbox repo, not a real product repo. <code class="mono">ENTERPRISE_AGENT_GITHUB_REPO</code>, <code class="mono">_TOKEN</code> (fine-grained, contents + PRs only).</div>
+      </div>
+      <div class="check-row">
+        <div class="who">Meeting transcripts<span>Intake stage</span></div>
+        <div class="needs">Pick one: a Zoom Server-to-Server OAuth app, or a webhook URL you stand up. Otter.ai itself has no usable public API — see below.</div>
+      </div>
+      <div class="check-row">
+        <div class="who">Claude / Anthropic<span>real LLM-driven content</span></div>
+        <div class="needs">Needed only if you want Intake/BRD/TDD/Review to generate real text instead of stub strings. Not yet documented in this repo — flagged as a fix below.</div>
+      </div>
+      <div class="check-row">
+        <div class="who">Web UI<span>browser approvals</span></div>
+        <div class="needs"><code class="mono">ENTERPRISE_AGENT_WEB_UI_TOKEN</code> — required before this is reachable off localhost.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="testdata">
+    <div class="section-head"><span class="section-num">07</span><h2>Test data — decisions needed from you</h2></div>
+    <p>I can generate synthetic meeting transcripts right now covering a few realistic scenarios (a feature request, a bug-fix discussion, a compliance-driven change) so we can run the pipeline end-to-end without waiting on real data. What I can't decide for you:</p>
+    <div class="ledger">
+      <div class="ledger-card pro">
+        <h3>I can do now</h3>
+        <ul>
+          <li><b>Synthetic transcripts</b><span>3–5 scenarios, varied complexity, ready to feed into Intake.</span></li>
+          <li><b>Config validation runs</b><span>Confirm each connector constructs correctly once credentials land — no live writes yet.</span></li>
+        </ul>
+      </div>
+      <div class="ledger-card con">
+        <h3>Needs your call</h3>
+        <ul>
+          <li><b>Which Jira/GitHub instance</b><span>A disposable sandbox, or a scoped test project inside a real org?</span></li>
+          <li><b>Zoom vs. webhook</b><span>Do you have Zoom admin access for an S2S app, or would a webhook relay be easier?</span></li>
+          <li><b>How far to run it live</b><span>Stop after Jira ticket creation, or push all the way through a real PR + merge?</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="roadmap">
+    <div class="section-head"><span class="section-num">08</span><h2>What closes the gap to sellable</h2></div>
+    <div class="roadmap">
+      <div class="road-item">
+        <span class="tag">Highest priority</span>
+        <h4>Real Dev-stage code generation</h4>
+        <p>Wire Dev into an agentic claude-agent-sdk loop with real file-edit/bash tools, so it produces an actual diff instead of a placeholder — this is also what finally gives the existing sandbox settings a live consumer.</p>
+      </div>
+      <div class="road-item">
+        <span class="tag">Required for any paid pilot</span>
+        <h4>Real auth: SSO/OIDC + RBAC on the web UI</h4>
+        <p>Replace the single shared token with per-user identity and role-scoped approval rights — table stakes for any security review.</p>
+      </div>
+      <div class="road-item">
+        <span class="tag">Required before multi-customer</span>
+        <h4>Deployment + data platform</h4>
+        <p>Dockerize it, move run state off local JSON into a real database, add health checks and CI — the difference between "a repo you clone" and "a service you operate."</p>
+      </div>
+      <div class="road-item">
+        <span class="tag">Strengthens the pitch</span>
+        <h4>Observability + resilience</h4>
+        <p>Metrics/tracing on top of the existing audit trail, plus retry/backoff on connector calls, so a flaky external API doesn't fail an entire run.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Grounded in the codebase as of this session — 66 tests passing, 7 roadmap phases complete (Jira, Confluence, GitHub, transcript source, LLM content, security hardening, web UI + anomaly detection). No claim above is aspirational; gaps are named because a real buyer's technical review would find them anyway.
+  </footer>
+</div>
