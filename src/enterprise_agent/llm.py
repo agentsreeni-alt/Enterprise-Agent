@@ -18,6 +18,8 @@ import re
 
 from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, TextBlock, query
 
+from enterprise_agent.errors import RealModeError
+
 
 async def _aprompt(prompt: str, system_prompt: str | None = None) -> str:
     options = ClaudeAgentOptions(tools=[])
@@ -39,7 +41,7 @@ def run_prompt(prompt: str, system_prompt: str | None = None) -> str:
     return asyncio.run(_aprompt(prompt, system_prompt))
 
 
-class LLMOutputError(ValueError):
+class LLMOutputError(RealModeError, ValueError):
     """Raised when a stage's response never contains the JSON it asked for."""
 
 

@@ -46,6 +46,7 @@ from claude_agent_sdk import (
 from claude_agent_sdk.types import McpHttpServerConfig
 
 from enterprise_agent.connectors.base import DocLink, JiraRef
+from enterprise_agent.errors import RealModeError
 from enterprise_agent.security.guardrails import UntrustedContent, sanitize_output
 
 MCP_SERVER_NAME = "atlassian"
@@ -81,14 +82,14 @@ _CREATE_ISSUE_TOOL = f"mcp__{MCP_SERVER_NAME}__createJiraIssue"
 _CREATE_PAGE_TOOL = f"mcp__{MCP_SERVER_NAME}__createConfluencePage"
 
 
-class AtlassianMcpConfigError(RuntimeError):
+class AtlassianMcpConfigError(RealModeError):
     """Raised synchronously, before any network call, when required config
     is missing. The message names the manual one-time setup step -- this is
     never something the code can silently work around.
     """
 
 
-class AtlassianMcpToolCallError(RuntimeError):
+class AtlassianMcpToolCallError(RealModeError):
     """Raised if the model's response never shows a real createJiraIssue
     tool call. Defends against a model (or injected content trying to
     influence it) claiming success in text without actually calling Jira.

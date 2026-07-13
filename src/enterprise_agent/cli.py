@@ -12,6 +12,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from enterprise_agent.errors import RealModeError
 from enterprise_agent.pipeline.gates import GateStatus
 from enterprise_agent.pipeline.orchestrator import GateRejectedError, Orchestrator
 from enterprise_agent.pipeline.state import PipelineState
@@ -50,7 +51,11 @@ def cmd_run(args: argparse.Namespace) -> int:
         connector_mode_overrides={k: "real" for k in real_kinds},
         llm_mode="real" if args.llm_real else "stub",
     )
-    state = orch.start(transcript_text)
+    try:
+        state = orch.start(transcript_text)
+    except RealModeError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
     _print_state_summary(state)
     return 0
 
@@ -63,6 +68,14 @@ def cmd_approve(args: argparse.Namespace) -> int:
         )
     except (FileNotFoundError, GateRejectedError) as e:
         print(f"error: {e}", file=sys.stderr)
+        return 1
+    except RealModeError as e:
+        print(f"error: {e}", file=sys.stderr)
+        print(
+            f"run_id {args.run_id} is unchanged -- fix the issue above and re-run "
+            "`approve` with the same --run-id once it's resolved.",
+            file=sys.stderr,
+        )
         return 1
     _print_state_summary(state)
     return 0

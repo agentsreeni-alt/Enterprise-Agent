@@ -23,6 +23,7 @@ import os
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
+from enterprise_agent.errors import RealModeError
 from enterprise_agent.pipeline.gates import GateStatus
 from enterprise_agent.pipeline.orchestrator import GateRejectedError, Orchestrator
 from enterprise_agent.pipeline.state import PipelineState, PipelineStatus
@@ -174,6 +175,11 @@ def create_app(store: RunStore | None = None) -> FastAPI:
             orchestrator.resume(run_id, status, reviewer=reviewer, comment=comment or None)
         except (FileNotFoundError, GateRejectedError) as e:
             raise HTTPException(status_code=400, detail=str(e))
+        except RealModeError as e:
+            # Run is unchanged (see orchestrator._run_until_blocked -- state
+            # is only saved after a stage succeeds), safe to retry once the
+            # underlying issue (credentials, network, ...) is fixed.
+            raise HTTPException(status_code=502, detail=str(e))
         token = request.query_params.get("token")
         token_qs = f"?token={html.escape(token)}" if token else ""
         return RedirectResponse(url=f"/runs/{run_id}{token_qs}", status_code=303)

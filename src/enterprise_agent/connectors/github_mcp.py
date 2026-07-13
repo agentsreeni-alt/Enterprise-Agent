@@ -39,6 +39,7 @@ from claude_agent_sdk import (
 from claude_agent_sdk.types import McpHttpServerConfig
 
 from enterprise_agent.connectors.base import MergeResult, PullRequestRef
+from enterprise_agent.errors import RealModeError
 from enterprise_agent.security.guardrails import UntrustedContent, sanitize_output
 
 MCP_SERVER_NAME = "github"
@@ -65,13 +66,13 @@ _REVIEW_TOOL = f"mcp__{MCP_SERVER_NAME}__pull_request_review_write"
 _MERGE_TOOL = f"mcp__{MCP_SERVER_NAME}__merge_pull_request"
 
 
-class GitHubMcpConfigError(RuntimeError):
+class GitHubMcpConfigError(RealModeError):
     """Raised synchronously, before any network call, when required config
     is missing.
     """
 
 
-class GitHubMcpToolCallError(RuntimeError):
+class GitHubMcpToolCallError(RealModeError):
     """Raised if the model's response never shows the expected real tool
     call. Defends against a model (or injected content trying to influence
     it) claiming success in text without actually calling GitHub.

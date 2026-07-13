@@ -29,6 +29,7 @@ import urllib.request
 from dataclasses import dataclass
 
 from enterprise_agent.connectors.base import Transcript
+from enterprise_agent.errors import RealModeError
 
 TRANSCRIPT_SOURCE_ENV = "ENTERPRISE_AGENT_TRANSCRIPT_SOURCE"
 
@@ -43,13 +44,13 @@ ZOOM_OAUTH_URL = "https://zoom.us/oauth/token"
 ZOOM_API_BASE = "https://api.zoom.us/v2"
 
 
-class NotetakerConfigError(RuntimeError):
+class NotetakerConfigError(RealModeError):
     """Raised synchronously, before any network call, when required config
     is missing or names an unknown source.
     """
 
 
-class NotetakerRequestError(RuntimeError):
+class NotetakerRequestError(RealModeError):
     """Raised when the configured transcript source is reachable but
     doesn't return a usable transcript (HTTP error, missing transcript
     file, malformed response).
